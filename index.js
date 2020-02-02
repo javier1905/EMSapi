@@ -7,6 +7,12 @@ const servidor = express()
 
 // middelware
 servidor.use(express.json())
+servidor.use(function(req, res, next) {
+    res.header('Access-Control-Allow-Origin', "*");
+    res.header('Access-Control-Allow-Methods','GET,PUT,POST,DELETE');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    next();
+})
 // servidor.use(morgan('dev'))
 
 servidor.get('/api/getList', (req,res) => {
