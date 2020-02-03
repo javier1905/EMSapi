@@ -13,13 +13,13 @@ servidor.use(function(req, res, next) {
     res.header('Access-Control-Allow-Headers', 'Content-Type');
     next();
 })
+servidor.use('/api/maquinas',require('./rutasApi/maquinas'))
+servidor.use('/api/usuarios',require('./rutasApi/usuarios'))
+servidor.use('/api/logueo',require('./rutasApi/Logueo'))
+servidor.use('/api/autentificasion',require('./rutasApi/Autentificasion'))
 // servidor.use(morgan('dev'))
 
-servidor.get('/api/getList', (req,res) => {
-    var list = ["item1", "item2", "item3"];
-    res.json(list);
-    console.log('Sent list of items');
-});
+
 
 //Settings
 servidor.set('port',process.env.PORT || 5000)
