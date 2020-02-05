@@ -1,6 +1,8 @@
 const express = require('express')
+const cors = require('cors')
 
 const servidor = express()
+servidor.use(cors())
 
 // middelware
 // servidor.use(function(req, res, next) {
