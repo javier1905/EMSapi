@@ -1,5 +1,7 @@
 const mssql = require('mssql');
-require('colors')
+if(process.env.NODE_ENV === 'development'){
+    require('colors')
+}
 
 var URI;
 
@@ -23,9 +25,15 @@ else{
 
 module.exports = mssql.connect(URI)
 .then(e=>{
-    e ?  console.log('Conectado a SQL SERVER'.blue)
-    :
-    console.log('Error de conexion !!'.cyan)
+    if(!e){
+        if(process.env.NODE_ENV === 'development'){
+            console.log('Conectado a SQL SERVER'.blue)
+        }        
+    }  
+    else{
+        console.log('Error de conexion !!')
+    }
+    
 })
 
 
