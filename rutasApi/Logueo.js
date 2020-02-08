@@ -26,7 +26,7 @@ router.post('/',async (req,res,next)=>{
                     apellido:user[0].apellido,
                     perfil:user[0].perfil
                 }
-                jwt.sign(miUsuario,secret,{expiresIn:600},(e,token)=>{
+                jwt.sign(miUsuario,secret,{expiresIn:14400},(e,token)=>{
                     e? res.status(404).json({mensaje:'Error al generar el token'}):
                     res.status(200).json({token})
                 })
