@@ -16,12 +16,6 @@ servidor.use(cors())
 servidor.use(express.json())
 servidor.use(express.urlencoded({extended: true}))
 
-// servidor.use((req, res, next) => {
-//     res.setHeader('Access-Control-Allow-Origin', '*'); //<= sólo permitirá conexiones cruzadas desde esta URI
-//     res.setHeader('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-//     res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-//     next();
-// });
 if(process.env.NODE_ENV === 'development'){
     servidor.use(morgan('dev'))
 }
