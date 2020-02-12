@@ -10,3 +10,4 @@ router.get('/',(req,res)=>{
         !err ? res.json(dato.recordset[0]) : res.json({mensaje:err.message})
     })
 })
+module.exports = router
