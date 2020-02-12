@@ -10,7 +10,7 @@ router.get('/',(req,res)=>{
         !err ? res.json(dato.recordsets[0]) : res.json({mensaje:err.message})
     })
 })
-router.get('xpieza/:idPieza',(req,res)=>{
+router.get('/xpieza/:idPieza',(req,res)=>{
     const {idPieza} = req.params
     require('../conexiones/sqlServer')
     const {Request} = require('mssql')

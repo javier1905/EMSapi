@@ -27,7 +27,7 @@ servidor.use('/api/logueo',require('./rutasApi/Logueo'))
 servidor.use('/api/autentificasion',require('./rutasApi/Autentificasion'))
 servidor.use('/api/piezas',require('./rutasApi/piezas'))
 servidor.use('/api/moldes',require('./rutasApi/moldes'))
-servidor.use('api/defectos',require('./rutasApi/defectos'))
+servidor.use('/api/defectos',require('./rutasApi/defectos'))
 
 //Settings
 servidor.set('port',process.env.PORT || 5000)
