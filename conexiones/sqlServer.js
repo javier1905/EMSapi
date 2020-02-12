@@ -1,113 +1,52 @@
-var Connection = require('tedious').Connection
-var Request = require('tedious').Request
-
+const mssql = require('mssql');
 if(process.env.NODE_ENV === 'development'){ require('colors') }
 
-var config
+var URI
 
 if(process.env.NODE_ENV === 'production'){
-    config = {
-        server: process.env.SERVERSQL,
-        options: {},
-        authentication: {
-            type: "default",
-            options: {
-                userName: process.env.USERSQL,
-                password: process.env.PASSWORDSQL,
-                database: process.env.DATABASESQL
-            }
-        }
-        ,options: {
-            database: process.env.DATABASESQL,
-        }
+    URI = {
+        user: process.env.USERSQL,
+        password: process.env.PASSWORDSQL,
+        database: process.env.DATABASESQL,
+        server:process.env.SERVERSQL,
+        options:{
+            enableArithAbort:true,
+            encrypt:false
+        },
     }
 }
 else{
-    config = {
-        server: 'DESKTOP-G1I097C',
+    URI = {
+        user: 'DBjav',
+        password: 'belgrano455',
+        database: 'EMS_DB_SQL',
         port:1433,
-        options: {},
-        authentication: {
-            type: "default",
-            options: {
-                userName: 'DBjav',
-                password: 'belgrano455',
-                database: 'EMS_DB_SQL'
-            }
-        },
-        options: {
-            database: "EMS_DB_SQL",
-            rowCollectionOnRequestCompletion: true,
-            rowCollectionOnDone: true
+        server:'DESKTOP-G1I097C',
+        options:{
+            appName:'ems-node-api',
+            enableArithAbort:true,
+            encrypt:false
+        }
+        ,
+        connectionTimeOut:150000,
+        driver:'tedious',
+        stream:false,
+        pool:{
+            max:20,
+            min:0,
+            idleTimeoutMillis:30000,
         }
     }
 }
-// var connection = new Connection(config)
-// connection.on('connect', err => {
-//     if(err){ console.log('error de conexion',err) }
-//     console.log('Conectado SQL SERVER'.blue)
-   
-// })
 
-const createSelectQuery = () =>{
-    var jsonSql = new (require('json-sql'))
-    let sql = jsonSql.build({
-        dialect: 'mssql',
-        type: 'select',
-        table: 'maquinas',
-        fields: [
-            'id',
-            'nombre',
-            'descripcion',
-            'id_tipos_maquina',
-            'id_planta',
-            'estado'
-        ]
-    })
-    return sql.query
-}
-const Promise = require('bluebird')
-const executeStatement = (query) => {
-
-    let resultEntity = {
-        result: {},
-        error: null
-    }
-    return new Promise((resolve, reject) => {
-        var connection = new Connection(config)
-        connection.on('connect', function (err) {
-            let request = new Request(query,  (err, rowCount, rows) => {
-                if (err) { console.log('pase por el error')
-                    resultEntity.error = err
-                    reject(resultEntity)
-                } else {console.log(rows)
-                    resultEntity.result = rows
-                    resolve(resultEntity)
-                }
-                 connection.close()
-            })
-            connection.execSql(request)
+module.exports = mssql.connect(URI)
+.then(pool=>{
+    if(pool._connected){
+        if(process.env.NODE_ENV === 'development'){
+            console.log('Conectado a SQL SERVER'.blue)
         }
-        )
-    })
-  
-    // request = new Request("SELECT * from maquinas", err => {
-    //     if (err) { console.log(err) }
-    // })
-    // var result = ""
-    // request.on('row', columns => {
-    //     columns.forEach(column => {
-    //         if (column.value === null) { console.log('NULL') }
-    //         else { result+= column.value + " " ;console.log(column.metadata.colName,column.value)}
-    //     })
-    //     // console.log(result)
-    //     result =""
-    // })
-    // request.on('done', (rowCount, more) => {
-    //     console.log(rowCount + ' rows returned')
-    // })
-    // connection.execSql(request)
-}
-console.log(createSelectQuery())
-executeStatement(createSelectQuery())
-.then(dato=>console.log(dato))
+    }
+    else{
+        console.log('Error de Conexion',pool._connected)
+    }
+})
