@@ -7,7 +7,7 @@ router.get('/',(req,res)=>{
     const {Request} = require('mssql')
     var consulta = new Request()
     consulta.query('select id as idDefecto, nombre as nombreDefecto from defectos where estado = 1',(err,dato)=>{
-        !err ? res.json(dato.recordset) : res.json({mensaje:err.message})
+        !err ? res.json(dato.recordsets[0]) : res.json({mensaje:err.message})
     })
 })
 module.exports = router
