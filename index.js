@@ -20,7 +20,6 @@ if(process.env.NODE_ENV === 'development'){
     servidor.use(morgan('dev'))
 }
 
-
 servidor.use('/api/maquinas',require('./rutasApi/maquinas'))
 servidor.use('/api/usuarios',require('./rutasApi/usuarios'))
 servidor.use('/api/logueo',require('./rutasApi/Logueo'))
@@ -28,6 +27,8 @@ servidor.use('/api/autentificasion',require('./rutasApi/Autentificasion'))
 servidor.use('/api/piezas',require('./rutasApi/piezas'))
 servidor.use('/api/moldes',require('./rutasApi/moldes'))
 servidor.use('/api/defectos',require('./rutasApi/defectos'))
+servidor.use('/api/operaciones',require('./rutasApi/operaciones'))
+servidor.use('/api/procesos',require('./rutasApi/procesos'))
 
 //Settings
 servidor.set('port',process.env.PORT || 5000)

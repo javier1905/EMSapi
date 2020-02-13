@@ -17,12 +17,11 @@ if(process.env.NODE_ENV === 'production'){
 }
 else{
     URI = {
-        user: 'emsDB', /*'DBjav' ||  */
+        user: 'DBjav', /*'DBjav emsDB' ||  */
         password: 'belgrano455',
         database: 'EMS_DB_SQL',
         port:1433,
-        server:'PC2360', /*'DESKTOP-G1I097C' ||*/
-        
+        server:'DESKTOP-G1I097C', /*'DESKTOP-G1I097C' PC2360 ||*/
         options:{
             appName:'ems-node-api',
             enableArithAbort:true,
@@ -40,14 +39,27 @@ else{
     }
 }
 
-module.exports = mssql.connect(URI)
-.then(pool=>{
-    if(pool._connected){
-        if(process.env.NODE_ENV === 'development'){
-            console.log('Conectado a SQL SERVER'.blue)
+var ConexionSQL = { abrirConexion:undefined,cerrarConexion:undefined}
+var conexion
+ConexionSQL.abrirConexion = async function (){
+    await mssql.connect(URI)
+    .then(pool=>{
+        if(pool._connected){
+            if(process.env.NODE_ENV === 'development'){
+                console.log('Conecion SQL SERVER'.blue,' ABIERTA'.green)
+                conexion = pool
+            }
         }
+        else{
+            console.log('Error de Conexion',pool._connected)
+        }
+    })
+}
+ConexionSQL.cerrarConexion = async function (){
+    await conexion.close()
+    if(process.env.NODE_ENV === 'development'){
+        console.log('Conecion SQL SERVER'.blue,' CERRADA'.green)
     }
-    else{
-        console.log('Error de Conexion',pool._connected)
-    }
-})
+}
+
+module.exports = ConexionSQL
