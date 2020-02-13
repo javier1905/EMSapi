@@ -114,8 +114,8 @@ create table turnos
 (
 	id int identity(1,1),
 	descripcion varchar(50) not null unique,
-	hs_inicio date not null,
-	hs_fin date not null,
+	hs_inicio time not null,
+	hs_fin time not null,
 	estado bit not null
 	constraint pk_turnos primary key (id)
 )
@@ -532,4 +532,9 @@ insert into paradas_maquina (nombre,tipo,id_area,estado) values
 ('PULIR MOLDE',1,1,1),
 ('PROBLEMAS CARRO',1,1,1),
 ('PROBLEMAS DE ACERO',1,1,1)
+go
+insert into turnos (descripcion,hs_inicio,hs_fin,estado) values
+('MAÑANA','06:00','14:18',1),
+('TARDE','14:18','22:36',1),
+('NOCHE','22:36','06:00',1)
 go

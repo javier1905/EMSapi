@@ -4,6 +4,7 @@ select * from maquinas
 select * from tipos_proceso
 select * from piezas
 select * from procesos
+select * from turnos
 
 --LISTADO OPERACIONES
 --select id as idOperacion, nombre as nombreOperacion from operaciones where estado = 1
@@ -19,3 +20,7 @@ select * from procesos
 
 --PROCESO SEGUN MAQUINA PIEZA Y TIPO DE PROCESO
 --select pro.id as idProceso, pro.descripcion as descripcionProceso from procesos pro where pro.estado = 1 and pro.id_pieza = 1 and pro.id_maquina = 8 and pro.id_tipos_proceso = 1
+
+--OBTENER TURNOS
+--select t.id as idTurno, t.descripcion as descripcionTurno,t.hs_inicio as hsInicioTurno ,t.hs_fin as hsFinTurno  from turnos t where estado = 1
+

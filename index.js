@@ -29,6 +29,7 @@ servidor.use('/api/moldes',require('./rutasApi/moldes'))
 servidor.use('/api/defectos',require('./rutasApi/defectos'))
 servidor.use('/api/operaciones',require('./rutasApi/operaciones'))
 servidor.use('/api/procesos',require('./rutasApi/procesos'))
+servidor.use('/api/turnos',require('./rutasApi/turnos'))
 
 //Settings
 servidor.set('port',process.env.PORT || 5000)
