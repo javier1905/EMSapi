@@ -30,12 +30,13 @@ servidor.use('/api/defectos',require('./rutasApi/defectos'))
 servidor.use('/api/operaciones',require('./rutasApi/operaciones'))
 servidor.use('/api/procesos',require('./rutasApi/procesos'))
 servidor.use('/api/turnos',require('./rutasApi/turnos'))
+servidor.use('/api/paradasMaquina',require('./rutasApi/paradasMaquina'))
 
 //Settings
 servidor.set('port',process.env.PORT || 5000)
 
 servidor.listen(servidor.get('port'),(m,e)=>{
-    if(e){console.log(e)}  
+    if(e){console.log(e)}
     else {
         if(process.env.NODE_ENV === 'development'){
             console.log('Servidor corriendo en el PUERTO'.yellow,servidor.get('port'))

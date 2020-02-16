@@ -114,8 +114,8 @@ create table turnos
 (
 	id int identity(1,1),
 	descripcion varchar(50) not null unique,
-	hs_inicio time not null,
-	hs_fin time not null,
+	hs_inicio time(0) not null,
+	hs_fin time(0) not null,
 	estado bit not null
 	constraint pk_turnos primary key (id)
 )
@@ -317,6 +317,8 @@ create table trabajador_x_planilla
 	id int identity(1,1),
 	calorias int default 0,
 	pza_producidas int default 0,
+	hora_inicio time(0) not null,
+	hora_fin time(0) not null,
 	id_trabajador int,
 	id_planilla int,
 	estado bit not null
@@ -353,8 +355,8 @@ go
 create table paradas_maquinas_x_planilla
 (
 	id int identity(1,1),
-	hora_incio time not null,
-	hora_fin time not null,
+	hora_incio time(0) not null,
+	hora_fin time(0) not null,
 	id_paradas_maquina int,
 	id_planilla int,
 	estado bit not null

@@ -17,11 +17,11 @@ if(process.env.NODE_ENV === 'production'){
 }
 else{
     URI = {
-        user: 'emsDB', /* DBjav emsDB  */
+        user: 'DBjav', /* DBjav emsDB  */
         password: 'belgrano455',
         database: 'EMS_DB_SQL',
         port:1433,
-        server:'PC2360', /* DESKTOP-G1I097C  PC2360 */
+        server:'DESKTOP-G1I097C', /* DESKTOP-G1I097C  PC2360 */
         options:{
             appName:'ems-node-api',
             enableArithAbort:true,
