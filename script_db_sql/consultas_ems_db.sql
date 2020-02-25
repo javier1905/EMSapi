@@ -8,6 +8,9 @@ select * from turnos
 select * from defectos
 select * from operaciones
 select * from trabajadores
+select * from areas
+
+
 --LISTADO OPERACIONES
 --select id as idOperacion, nombre as nombreOperacion from operaciones where estado = 1
 
@@ -33,3 +36,10 @@ select d.id as idDefecto, d.nombre as nombreDefecto, d.id_operacion as idOperaci
 --OBTENET LISTA DE TRABAJADORES
 
 select t.id as idTrabajador, t.nombre as nombreTrabajador, t.apellido as apellidoTrabajador, t.f_nacimiento as fechaNacimientoTrabajador, t.f_ingreso as fechaIngresoTrabajador, t.id_puesto as idPuestoTrabajador, p.nombre as nombrePuesto from trabajadores t join puestos p on t.id_puesto=p.id where t.estado = 1
+
+--OBTENER LISTADO PARADS DE MAQUINA 
+
+select pm.id as idParadaMaquina, pm.nombre as nombreParadaMaquina, pm.tipo as tipoParadaMaquina, pm.id_area as idArea, a.nombre as nombreArea
+        from paradas_maquina pm
+		join areas a on pm.id_area=a.id
+        where pm.estado = 1

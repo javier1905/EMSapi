@@ -9,9 +9,10 @@ router.get('/',async (req,res)=>{
     var {Request} = require('mssql')
     var consulta = new Request()
     consulta.query(
-        `select id as idParadaMaquina, nombre as nombreParadaMaquina, tipo as tipoParadaMaquina, id_area as idArea 
-        from paradas_maquina
-        where estado = 1`,
+        `select pm.id as idParadaMaquina, pm.nombre as nombreParadaMaquina, pm.tipo as tipoParadaMaquina, pm.id_area as idArea, a.nombre as nombreArea
+        from paradas_maquina pm
+		join areas a on pm.id_area=a.id
+        where pm.estado = 1`,
         (e,dato)=>{
             if(!e){cerrarConexion()
                 res.json(dato.recordset)
