@@ -5,7 +5,9 @@ select * from tipos_proceso
 select * from piezas
 select * from procesos
 select * from turnos
-
+select * from defectos
+select * from operaciones
+select * from trabajadores
 --LISTADO OPERACIONES
 --select id as idOperacion, nombre as nombreOperacion from operaciones where estado = 1
 
@@ -24,3 +26,10 @@ select * from turnos
 --OBTENER TURNOS
 --select t.id as idTurno, t.descripcion as descripcionTurno,t.hs_inicio as hsInicioTurno ,t.hs_fin as hsFinTurno  from turnos t where estado = 1
 
+--OBTENER LISTADOS DE DEFECTOS 
+
+select d.id as idDefecto, d.nombre as nombreDefecto, d.id_operacion as idOperacion,o.nombre as nombreOperacion from defectos d join operaciones o on d.id_operacion=o.id where d.estado = 1
+
+--OBTENET LISTA DE TRABAJADORES
+
+select t.id as idTrabajador, t.nombre as nombreTrabajador, t.apellido as apellidoTrabajador, t.f_nacimiento as fechaNacimientoTrabajador, t.f_ingreso as fechaIngresoTrabajador, t.id_puesto as idPuestoTrabajador, p.nombre as nombrePuesto from trabajadores t join puestos p on t.id_puesto=p.id where t.estado = 1

@@ -8,7 +8,7 @@ router.get('/',async (req,res) => {
     var consulta = new Request()
     consulta.query(
         `select t.id as idTurno, t.descripcion as descripcionTurno,t.hs_inicio as hsInicioTurno ,t.hs_fin as hsFinTurno  
-        from turnos t 
+        from turnos t
         where estado = 1`,
         (err,dato) => {
             if(!err){res.json(dato.recordset); cerrarConexion() } else { res.json({mensaje:err.message}); cerrarConexion() }

@@ -31,6 +31,7 @@ servidor.use('/api/operaciones',require('./rutasApi/operaciones'))
 servidor.use('/api/procesos',require('./rutasApi/procesos'))
 servidor.use('/api/turnos',require('./rutasApi/turnos'))
 servidor.use('/api/paradasMaquina',require('./rutasApi/paradasMaquina'))
+servidor.use('/api/trabajadores',require('./rutasApi/trabajadores'))
 
 //Settings
 servidor.set('port',process.env.PORT || 5000)
