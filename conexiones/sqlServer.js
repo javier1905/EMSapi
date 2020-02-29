@@ -39,7 +39,7 @@ else{
     }
 }
 
-var ConexionSQL = { abrirConexion:undefined,cerrarConexion:undefined}
+var ConexionSQL = { abrirConexion:undefined, cerrarConexion:undefined, abrirConexionPOOL:undefined, cerrarConexionPOOL:undefined }
 var conexion
 ConexionSQL.abrirConexion = async function (){
     await mssql.connect(URI)
@@ -62,4 +62,28 @@ ConexionSQL.cerrarConexion = async function (){
     }
 }
 
+const conexiones = {}
+
+ConexionSQL.abrirConexionPOOL = async name =>{
+   
+    if(!Object.prototype.hasOwnProperty.call(conexiones,name)){
+        
+        const newConexion = new mssql.ConnectionPool(URI)
+        const close = newConexion.close.bind(newConexion)
+       
+        newConexion.close = (...args) => {
+            delete conexiones[name]
+            return close(...args)
+        }
+        await newConexion.connect()
+        conexiones[name] = newConexion
+        return conexiones[name]
+    }
+}
+
+ConexionSQL.cerrarConexionPOOL = () =>{
+    return Promise.all(Object.values(conexiones).map((pool)=>{
+        return pool.close()
+    }))
+}
 module.exports = ConexionSQL
