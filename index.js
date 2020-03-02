@@ -4,7 +4,7 @@ var morgan;
 
 if(process.env.NODE_ENV === 'development'){
     require('colors')
-     morgan = require('morgan')
+    morgan = require('morgan')
 }
 console.log(process.env.NODE_ENV)
 
@@ -15,6 +15,7 @@ servidor.use(cors())
 
 servidor.use(express.json())
 servidor.use(express.urlencoded({extended: true}))
+
 
 if(process.env.NODE_ENV === 'development'){
     servidor.use(morgan('dev'))
@@ -33,6 +34,7 @@ servidor.use('/api/turnos',require('./rutasApi/turnos'))
 servidor.use('/api/paradasMaquina',require('./rutasApi/paradasMaquina'))
 servidor.use('/api/trabajadores',require('./rutasApi/trabajadores'))
 servidor.use('/api/planillasProduccion',require('./rutasApi/planillasProduccion'))
+servidor.use('/api/tiposProceso',require('./rutasApi/tiposProceso'))
 
 //Settings
 servidor.set('port',process.env.PORT || 5000)

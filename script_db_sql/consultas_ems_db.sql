@@ -9,7 +9,14 @@ select * from defectos
 select * from operaciones
 select * from trabajadores
 select * from areas
+select * from procesos
+select * from tipos_proceso
+select id as idTipoProceso, nombre as nombreTipoProceso from tipos_proceso where estado = 1
 
+select top 1 id from procesos p  where p.id_maquina = 8 and p.id_pieza = 1 and id_tipos_proceso = 1 and estado = 1 
+
+select tp.id as idTipoProceso, tp.nombre as nombreTipoProceso from tipos_proceso tp
+join procesos p on tp.id = p.id_tipos_proceso where p.id_maquina = 8 and p.id_pieza = 1 and tp.estado = 1
 
 --LISTADO OPERACIONES
 --select id as idOperacion, nombre as nombreOperacion from operaciones where estado = 1
