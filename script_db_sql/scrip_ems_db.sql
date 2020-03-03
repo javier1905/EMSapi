@@ -304,12 +304,12 @@ create table planillas_produccion
 	fe_fundicion date not null,
 	hora_inicio time not null,
 	hora_fin time not null,
-	id_proceso int,
-	id_turno int,
+	id_proceso int,	
+	id_molde int,
 	estado bit not null
 	constraint pk_planillas_produccion primary key (id),
-	constraint fk_planillas_produccion_procesos foreign key(id_proceso) references procesos(id),
-	constraint fk_planillas_produccion_turnos foreign key(id_turno) references turnos(id)
+	constraint fk_planillas_produccion_procesos foreign key(id_proceso) references procesos(id),	
+	constraint fk_planillas_produccion_moldes foreign key(id_molde) references moldes(id)
 )
 go
 create table trabajador_x_planilla
@@ -321,10 +321,12 @@ create table trabajador_x_planilla
 	hora_fin time(0) not null,
 	id_trabajador int,
 	id_planilla int,
+	id_turno int,
 	estado bit not null
 	constraint pk_trabajador_x_planilla primary key (id),
 	constraint fk_trabajador_x_planilla_trabajadores foreign key(id_trabajador) references trabajadores(id),
-	constraint fk_trabajador_x_planilla_planillas_produccion foreign key(id_planilla) references planillas_produccion(id)
+	constraint fk_trabajador_x_planilla_planillas_produccion foreign key(id_planilla) references planillas_produccion(id),
+	constraint fk_trabajador_x_planilla_turnos foreign key(id_turno) references turnos(id)
 )
 go
 create table rechazos_x_trabajador_y_planilla

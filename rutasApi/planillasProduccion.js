@@ -30,22 +30,23 @@ router.post( '/', async ( req , res ) => {
                     ps_insercionPlanillaProduccion.input( 'fe_fundicion',mssql.Date )
                     ps_insercionPlanillaProduccion.input( 'hora_inicio',mssql.Time )
                     ps_insercionPlanillaProduccion.input( 'hora_fin',mssql.Time )
-                    ps_insercionPlanillaProduccion.input( 'id_turno',mssql.Int )
+                    ps_insercionPlanillaProduccion.input( 'id_molde',mssql.Int )
                     await ps_insercionPlanillaProduccion.prepare(
                         `set dateformat dmy ;
                         declare @idProce int ;
                         set @idProce = (select top 1 id from procesos p  where p.id_maquina = ${ idMaquina } and p.id_pieza = ${ idPieza } and id_tipos_proceso = ${ idTipoProceso } and estado = 1 ) ;
                         insert into planillas_produccion
-                        ( fe_carga , fe_produccion , fe_fundicion , hora_inicio , hora_fin , id_proceso , id_turno , estado )
+                        ( fe_carga , fe_produccion , fe_fundicion , hora_inicio , hora_fin , id_proceso , id_molde  , estado )
                         values
-                        ( GETDATE() , @fe_produccion , @fe_fundicion , @hora_inicio , @hora_fin ,  1 , @id_turno , 1 )`
+                        ( GETDATE() , @fe_produccion , @fe_fundicion , @hora_inicio , @hora_fin , @idProce , @id_molde , 1 )`
                     )
                     const datosPlanillaProduccion = {
                         fe_produccion: fechaProduccion,
                         fe_fundicion: fechaFundicion,
                         hora_inicio: convierteHora( HoraInicioProduccion ),
                         hora_fin: convierteHora( HoraFinProduccion ) ,
-                        id_turno: parseInt( idTurno )
+                        id_turno: parseInt( idTurno ),
+                        id_molde: parseInt( idMolde )
                     }
                     var resultC1
                     resultC1 = await ps_insercionPlanillaProduccion.execute( datosPlanillaProduccion )
@@ -68,18 +69,20 @@ router.post( '/', async ( req , res ) => {
                                 hora_fin: convierteHora( operario.horaFin ),
                                 id_trabajador: parseInt( operario.idOperario),
                                 id_planilla: parseInt( idPlanillaProduccion.recordset[0].idPlanilla ),
+                                id_turno: parseInt( operario.idTurno ),
                                 vecRechazos: operario.vecRechazo
                             }
                             vecOperariosXplanilla.push( op )
                         })
                         asincrono.eachSeries(vecOperariosXplanilla,( trabajador, callback ) => {
-                            const  ps_insercionTrabajadoresXPlanilla = new Request(transaccion)
-                            ps_insercionTrabajadoresXPlanilla.input( 'calorias',mssql.Int, trabajador.calorias )
-                            ps_insercionTrabajadoresXPlanilla.input( 'pza_producidas',mssql.Int, trabajador.pza_producidas )
-                            ps_insercionTrabajadoresXPlanilla.input( 'hora_inicio',mssql.Time, trabajador.hora_inicio )
-                            ps_insercionTrabajadoresXPlanilla.input( 'hora_fin',mssql.Time, trabajador.hora_fin )
-                            ps_insercionTrabajadoresXPlanilla.input( 'id_trabajador',mssql.Int, trabajador.id_trabajador )
-                            ps_insercionTrabajadoresXPlanilla.input( 'id_planilla',mssql.Int, trabajador.id_planilla )
+                            const  ps_insercionTrabajadoresXPlanilla = new Request( transaccion )
+                            ps_insercionTrabajadoresXPlanilla.input( 'calorias', mssql.Int, trabajador.calorias )
+                            ps_insercionTrabajadoresXPlanilla.input( 'pza_producidas', mssql.Int, trabajador.pza_producidas )
+                            ps_insercionTrabajadoresXPlanilla.input( 'id_turno', mssql.Int, trabajador.id_turno )
+                            ps_insercionTrabajadoresXPlanilla.input( 'hora_inicio', mssql.Time, trabajador.hora_inicio )
+                            ps_insercionTrabajadoresXPlanilla.input( 'hora_fin', mssql.Time, trabajador.hora_fin )
+                            ps_insercionTrabajadoresXPlanilla.input( 'id_trabajador', mssql.Int, trabajador.id_trabajador )
+                            ps_insercionTrabajadoresXPlanilla.input( 'id_planilla', mssql.Int, trabajador.id_planilla )
                             var vecRechazosTrabajadorXplanilla = [  ]
                             trabajador.vecRechazos.forEach( re => {
                                 var rechazoZ = {
@@ -91,9 +94,9 @@ router.post( '/', async ( req , res ) => {
                                 vecRechazosTrabajadorXplanilla.push( rechazoZ )
                             })
                             var consulta = `insert into trabajador_x_planilla
-                            (calorias , pza_producidas , hora_inicio , hora_fin , id_trabajador , id_planilla , estado)
+                            (calorias , pza_producidas, id_turno , hora_inicio , hora_fin , id_trabajador , id_planilla , estado)
                             values
-                            (@calorias , @pza_producidas , @hora_inicio , @hora_fin , @id_trabajador , @id_planilla , 1) ;
+                            (@calorias , @pza_producidas , @id_turno , @hora_inicio , @hora_fin , @id_trabajador , @id_planilla , 1) ;
                             declare @id_trabajador_x_planilla int ;
                             declare @id_rechazos_x_trabajador_y_planilla int ;
                             set @id_trabajador_x_planilla = ( select max( id ) as idTrabajadorXplanilla from trabajador_x_planilla ) ; `
