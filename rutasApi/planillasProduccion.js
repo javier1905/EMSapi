@@ -43,8 +43,8 @@ router.post( '/', async ( req , res ) => {
                     const datosPlanillaProduccion = {
                         fe_produccion: fechaProduccion,
                         fe_fundicion: fechaFundicion,
-                        hora_inicio: convierteHora( HoraInicioProduccion ),
-                        hora_fin: convierteHora( HoraFinProduccion ) ,
+                        hora_inicio: process.env.NODE_ENV === 'development'? convierteHora( HoraInicioProduccion ) : new Date(`2020-02-15T${HoraInicioProduccion}:00`),
+                        hora_fin: process.env.NODE_ENV === 'development'? convierteHora( HoraFinProduccion ) : new Date(`2020-02-15T${HoraFinProduccion}:00`),
                         id_turno: parseInt( idTurno ),
                         id_molde: parseInt( idMolde )
                     }
@@ -65,8 +65,8 @@ router.post( '/', async ( req , res ) => {
                             var op = {
                                 calorias: parseInt( operario.calorias ),
                                 pza_producidas: parseInt( operario.produccion ),
-                                hora_inicio: convierteHora( operario.horaInicio ),
-                                hora_fin: convierteHora( operario.horaFin ),
+                                hora_inicio: process.env.NODE_ENV === 'development'? convierteHora( operario.horaInicio ) : new Date(`2020-02-15T${operario.horaInicio}:00`),
+                                hora_fin: process.env.NODE_ENV === 'development'? convierteHora( operario.horaFin ) : new Date(`2020-02-15T${operario.horaFin}:00`),
                                 id_trabajador: parseInt( operario.idOperario),
                                 id_planilla: parseInt( idPlanillaProduccion.recordset[0].idPlanilla ),
                                 id_turno: parseInt( operario.idTurno ),
@@ -133,8 +133,8 @@ router.post( '/', async ( req , res ) => {
                                 var vecParadasDeMaquina = [ ]
                                 vecParadasMaquinaSeleccionada.forEach( pm => {
                                         var paraMAC = {
-                                            hora_inicio: convierteHora( pm.desdeParadaMaquina ),
-                                            hora_fin: convierteHora( pm.hastaParadaMaquina ),
+                                            hora_inicio: process.env.NODE_ENV === 'development'? convierteHora( pm.desdeParadaMaquina ) : new Date(`2020-02-15T${pm.desdeParadaMaquina}:00`),
+                                            hora_fin: process.env.NODE_ENV === 'development'? convierteHora( pm.hastaParadaMaquina ) : new Date(`2020-02-15T${pm.hastaParadaMaquina}:00`),
                                             id_paradas_maquina: parseInt( pm.idParadaMaquina ),
                                             id_planilla: idPlanillaProduccion.recordset[0].idPlanilla
                                         }
