@@ -302,8 +302,8 @@ create table planillas_produccion
 	fe_carga date default getdate(),
 	fe_produccion date not null,
 	fe_fundicion date not null,
-	hora_inicio time not null,
-	hora_fin time not null,
+	hora_inicio time(0) not null,
+	hora_fin time(0) not null,
 	id_proceso int,	
 	id_molde int,
 	estado bit not null

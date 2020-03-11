@@ -2,11 +2,58 @@ const {Router} = require('express')
 
 const router = Router()
 
-const convierteHora = ( hora ) => { 
+const convierteHora = ( hora ) => {
     var HorInicionO = new Date(`2020-02-15T${hora}:00`)
     HorInicionO.setHours( HorInicionO.getHours() - 3 )
     return HorInicionO
 }
+
+router.post( '/listado', async ( req , res ) => {
+
+    const {
+                fechaDesdeProduccion , fechaHastaProduccion ,
+                fechaDesdeFundicion , fechaHastaFundicon , idMaquina , idPieza , idMolde ,idTipoProceso , idTipoMaquina
+    } = req.body
+    const { abrirConexionPOOL , cerrarConexionPOOL } = require('../conexiones/sqlServer')
+    const conexionAbierta = await abrirConexionPOOL()
+    const { Transaction } = require('mssql')
+    const transaccion = new Transaction(conexionAbierta)
+    const { Request } = require('mssql')
+    transaccion.begin( async e=>{
+
+        if( e ) {  res.json({ mensaje: e.message })  }
+        const sqlConsulta = `set dateformat dmy ;
+        select pl.id as idPlanilla, pl.fe_carga as fechaCarga, pl.fe_produccion as fechaProduccion, pl.fe_fundicion as fechaFundicion, 
+        pl.hora_inicio as horaInicio , pl.hora_fin as horaFin,maq.nombre as nombreMaquina , pie.nombre as nombrePieza , mol.nombre, tp.nombre as nombreTipoProceso   from planillas_produccion pl
+        join moldes mol on pl.id_molde = mol.id
+        join procesos p on pl.id_proceso = p.id
+        join piezas pie on p.id_pieza = pie.id
+        join maquinas maq on p.id_maquina = maq.id
+        join tipos_proceso tp on p.id_tipos_proceso = tp.id
+        where pl.estado = 1
+        and pl.fe_fundicion between '${ fechaDesdeFundicion }' and '${ fechaHastaFundicon }'
+        and pl.fe_produccion between '${ fechaDesdeProduccion }' and '${ fechaHastaProduccion }'
+        and ( ${ idMaquina } is null  or p.id_maquina =  ${ idMaquina })
+        and ( ${ idPieza } is null  or p.id_pieza =  ${ idPieza })
+        and ( ${ idMolde } is null  or pl.id_molde =  ${ idMolde })
+        and ( ${ idTipoProceso } is null  or p.id_tipos_proceso =  ${ idTipoProceso })
+        and ( ${ idTipoMaquina } is null  or maq.id_tipos_maquina =  ${ idTipoMaquina })`
+        const consultaPlanilla = new Request( transaccion )
+        var resultPlanillaProduccion
+        try{
+            resultPlanillaProduccion = await consultaPlanilla.query( sqlConsulta )
+            transaccion.commit()
+            cerrarConexionPOOL()
+            res.json(resultPlanillaProduccion.recordset)
+        }
+         catch(e){
+            transaccion.rollback()
+            cerrarConexionPOOL()
+            res.json({ mensaje: e.message })
+         }
+    })
+})
+
 router.post( '/', async ( req , res ) => {
     var { fechaProduccion, fechaFundicion, idTurno, HoraInicioProduccion,
         HoraFinProduccion,  idOperacion, idMaquina,  idPieza,  idMolde, idTipoProceso,
