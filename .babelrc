@@ -1,0 +1,13 @@
+{
+    "presets": [
+        [
+            "@babel/preset-env" ,
+            {
+                "targets": {
+                    "node" : "13.7.0" ,
+                    "esmodules" : false // para que no tranpiles el coigo de cada libreria
+                }
+            }
+        ]
+    ]
+}
