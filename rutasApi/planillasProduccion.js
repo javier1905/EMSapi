@@ -165,8 +165,7 @@ router.post( '/listado', async ( req , res ) => {
                                         pl.vecTrabajadores.push( traXpla )
                                     }
                                 })
-                            })
-                           
+                            })  // hola mundo 
                             transaccion.commit()
                             cerrarConexionPOOL()
                             res.json( vecPlanillaProduccion )

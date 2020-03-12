@@ -1,3 +1,10 @@
 
 # folders
-node_modules/
+/node_modules
+index.js
+/conexiones
+/esquemasMongo
+/rutasApi
+/CONFIG.js
+webpack.config.js
+.babelrc

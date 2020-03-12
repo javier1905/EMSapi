@@ -5,7 +5,7 @@
         "type": "node",
         "request": "launch",
         "name": "PLA PRODUC",
-        "program": "${workspaceFolder}/rutasApi/planillasProduccion.js"
+        "port" : 7777
       }
     ]
   }
