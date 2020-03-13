@@ -4,7 +4,7 @@ const nodemonWebpackPlugin = require( 'nodemon-webpack-plugin' )
 
 module.exports = {
     // mode : 'development' ,
-    mode : 'production' ,
+    // mode : 'production' ,
     target: 'node' ,
     entry : {
         app : path.resolve( __dirname , 'index.js' )
