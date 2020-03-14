@@ -24,8 +24,8 @@ router.post( '/listado', async ( req , res ) => {
 
         if( e ) {  res.json( { mensaje: e.message } )  }
         const sqlConsulta = `set dateformat dmy ;
-        select pl.id as idPlanilla, pl.fe_carga as fechaCarga, pl.fe_produccion as fechaProduccion, pl.fe_fundicion as fechaFundicion, 
-        pl.hora_inicio as horaInicio , pl.hora_fin as horaFin, tm.id_operacion as idOperacion, maq.id as idMaquina ,maq.nombre as nombreMaquina , pie.id as idPieza,  
+        select pl.id as idPlanilla, pl.fe_carga as fechaCarga, pl.fe_produccion as fechaProduccion, pl.fe_fundicion as fechaFundicion,
+        pl.hora_inicio as horaInicio , pl.hora_fin as horaFin, tm.id_operacion as idOperacion, maq.id as idMaquina ,maq.nombre as nombreMaquina , pie.id as idPieza,
         pie.nombre as nombrePieza , mol.id as idMolde,  mol.nombre as nombreMolde , tp.id as idTipoProceso, tp.nombre as tipoProceso
         , pl.id_proceso as idProceso
         from planillas_produccion pl
@@ -34,15 +34,15 @@ router.post( '/listado', async ( req , res ) => {
         join piezas pie on p.id_pieza = pie.id
         join maquinas maq on p.id_maquina = maq.id
         join tipos_proceso tp on p.id_tipos_proceso = tp.id
-        join tipos_maquina tm on maq.id_tipos_maquina = tp.id
+        join tipos_maquina tm on maq.id_tipos_maquina = tm.id
         where pl.estado = 1
-        and pl.fe_fundicion between '${ fechaDesdeFundicion }' and '${ fechaHastaFundicon }'
-        and pl.fe_produccion between '${ fechaDesdeProduccion }' and '${ fechaHastaProduccion }'
-        and ( ${ idMaquina } is null  or p.id_maquina =  ${ idMaquina })
-        and ( ${ idPieza } is null  or p.id_pieza =  ${ idPieza })
-        and ( ${ idMolde } is null  or pl.id_molde =  ${ idMolde })
-        and ( ${ idTipoProceso } is null  or p.id_tipos_proceso =  ${ idTipoProceso })
-        and ( ${ idTipoMaquina } is null  or maq.id_tipos_maquina =  ${ idTipoMaquina })`
+        and ( pl.fe_fundicion between '${ fechaDesdeFundicion }' and '${ fechaHastaFundicon } ' )
+        and ( pl.fe_produccion between '${ fechaDesdeProduccion }' and '${ fechaHastaProduccion } ' )
+        and ( ${ idMaquina } is null  or p.id_maquina =  ${ idMaquina } )
+        and ( ${ idPieza } is null  or p.id_pieza =  ${ idPieza } )
+        and ( ${ idMolde } is null  or pl.id_molde =  ${ idMolde } )
+        and ( ${ idTipoProceso } is null  or p.id_tipos_proceso =  ${ idTipoProceso } )
+        and ( ${ idTipoMaquina } is null  or maq.id_tipos_maquina =  ${ idTipoMaquina } ) `
         const consultaPlanilla = new Request( transaccion )
         const consultaOperariosXplanilla = new Request( transaccion )
         const consultaRechazos = new Request( transaccion )
@@ -62,8 +62,8 @@ router.post( '/listado', async ( req , res ) => {
                         fechaCarga : pla.fechaCarga ,
                         fechaProduccion : pla.fechaProduccion ,
                         fechaFundicion : pla.fechaFundicion ,
-                        horaInicio : new Moment ( pla.horaInicio ).format( "HH:mm" ),
-                        horaFin : new Moment ( pla.horaFin ).format( "HH:mm" ),
+                        horaInicio : new Moment ( pla.horaInicio ).format( "HH:mm" ) ,
+                        horaFin : new Moment ( pla.horaFin ).format( "HH:mm" ) ,
                         idOperacion : pla.idOperacion ,
                         idMaquina : pla.idMaquina ,
                         nombreMaquina : pla.nombreMaquina ,
@@ -83,20 +83,20 @@ router.post( '/listado', async ( req , res ) => {
                     else{ listaIdPlanillasProduc += `${parseInt(pla.idPlanilla)} ,` }
                 })
                 var sqlConsultaOperariosXplanilla = `select txp.id as idTrabajadorXplanilla , t.nombre as nombreTrabajador, t.apellido as apellidoTrabajador, tur.descripcion  as turnoTrabajador ,
-                txp.hora_inicio as horaInicio , txp.hora_fin as horaFin,  txp.pza_producidas as piezasProducidas , 
+                txp.hora_inicio as horaInicio , txp.hora_fin as horaFin,  txp.pza_producidas as piezasProducidas ,
                 txp.calorias as calorias , txp.id_planilla as idPlanilla , txp.id_trabajador as idTrabajador , txp.id_turno as idTurno
                 from trabajador_x_planilla txp
                 join trabajadores t on txp.id_trabajador = t.id
                 join turnos tur on txp.id_turno = tur.id
                 where txp.estado = 1
-                and txp.id_planilla in ( ${ listaIdPlanillasProduc } )  ;`
+                and txp.id_planilla in ( ${ listaIdPlanillasProduc } )  ; `
 
                 var sqlConsultaPM = ` select pmxp.id as idParadaMaquinaXplanilla , pm.id as idParadaMaquina , pm.nombre as nombreParadaMaquina ,
                 pmxp.hora_incio as horaInicioParadaMaquina , pmxp.hora_fin as horaFinParadaMaquina , pmxp.id_planilla as idPlanilla , pm.tipo as tipoParadaMaquina
                 from paradas_maquinas_x_planilla pmxp
                 join paradas_maquina pm on pmxp.id_paradas_maquina = pm.id
                 where pmxp.estado = 1
-                and pmxp.id_planilla in ( ${ listaIdPlanillasProduc } ) ;`
+                and pmxp.id_planilla in ( ${ listaIdPlanillasProduc } ) ; `
                 const trabajadoresXplanilla = await  consultaOperariosXplanilla.query( sqlConsultaOperariosXplanilla + sqlConsultaPM )
                 if(trabajadoresXplanilla.recordsets[0] && trabajadoresXplanilla.recordsets[1]){
                     vecTrabajadores = trabajadoresXplanilla.recordsets[0]
@@ -106,12 +106,12 @@ router.post( '/listado', async ( req , res ) => {
                         if( i === ( vecTrabajadores.length - 1)){ listaIdTrabajadores += `${parseInt(t.idTrabajadorXplanilla)} ` }
                         else{ listaIdTrabajadores += `${parseInt(t.idTrabajadorXplanilla)} ,` }
                     })
-                    var sqlConsultaRechazos = ` select rxtyp.id as idRechazoXtrabajadorYplanilla , d.nombre as nombreRechazo , 
+                    var sqlConsultaRechazos = ` select rxtyp.id as idRechazoXtrabajadorYplanilla , d.nombre as nombreRechazo ,
                     rxtyp.tipo as tipoRechazo , rxtyp.cantidad as cantidadRechazos , rxtyp.id_trabajador_x_planilla as idTrabajadorXplanilla , rxtyp.id_defecto as idDefecto
                     from rechazos_x_trabajador_y_planilla rxtyp
                     join defectos d on rxtyp.id_defecto = d.id
                     where rxtyp.estado = 1
-                    and rxtyp.id_trabajador_x_planilla in ( ${ listaIdTrabajadores } )`
+                    and rxtyp.id_trabajador_x_planilla in ( ${ listaIdTrabajadores } ) ; `
                     const rechazos = await consultaRechazos.query( sqlConsultaRechazos )
                     if( rechazos.recordset ){
                         vecRechazos = rechazos.recordset
