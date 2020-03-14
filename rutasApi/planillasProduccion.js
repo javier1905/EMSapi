@@ -23,7 +23,7 @@ router.post( '/listado', async ( req , res ) => {
     transaccion.begin( async e=>{
 
         if( e ) {  res.json( { mensaje: e.message } )  }
-        const sqlConsulta = `set dateformat dmy ;
+        const sqlConsulta = ` set dateformat dmy ;
         select pl.id as idPlanilla, pl.fe_carga as fechaCarga, pl.fe_produccion as fechaProduccion, pl.fe_fundicion as fechaFundicion,
         pl.hora_inicio as horaInicio , pl.hora_fin as horaFin, tm.id_operacion as idOperacion, maq.id as idMaquina ,maq.nombre as nombreMaquina , pie.id as idPieza,
         pie.nombre as nombrePieza , mol.id as idMolde,  mol.nombre as nombreMolde , tp.id as idTipoProceso, tp.nombre as tipoProceso
@@ -36,13 +36,14 @@ router.post( '/listado', async ( req , res ) => {
         join tipos_proceso tp on p.id_tipos_proceso = tp.id
         join tipos_maquina tm on maq.id_tipos_maquina = tm.id
         where pl.estado = 1
-        and ( pl.fe_fundicion between '${ fechaDesdeFundicion }' and '${ fechaHastaFundicon } ' )
-        and ( pl.fe_produccion between '${ fechaDesdeProduccion }' and '${ fechaHastaProduccion } ' )
+        and  pl.fe_fundicion between '${fechaDesdeFundicion}' and '${fechaHastaFundicon}'
+        and  pl.fe_produccion between '${fechaDesdeProduccion}' and '${fechaHastaProduccion}'
         and ( ${ idMaquina } is null  or p.id_maquina =  ${ idMaquina } )
         and ( ${ idPieza } is null  or p.id_pieza =  ${ idPieza } )
         and ( ${ idMolde } is null  or pl.id_molde =  ${ idMolde } )
         and ( ${ idTipoProceso } is null  or p.id_tipos_proceso =  ${ idTipoProceso } )
         and ( ${ idTipoMaquina } is null  or maq.id_tipos_maquina =  ${ idTipoMaquina } ) `
+
         const consultaPlanilla = new Request( transaccion )
         const consultaOperariosXplanilla = new Request( transaccion )
         const consultaRechazos = new Request( transaccion )
@@ -63,7 +64,7 @@ router.post( '/listado', async ( req , res ) => {
                         fechaProduccion : pla.fechaProduccion ,
                         fechaFundicion : pla.fechaFundicion ,
                         horaInicio : new Moment ( pla.horaInicio ).format( "HH:mm" ) ,
-                        horaFin : new Moment ( pla.horaFin ).format( "HH:mm" ) ,
+                        horaFin : new Moment (  pla.horaFin ).format( "HH:mm" ) ,
                         idOperacion : pla.idOperacion ,
                         idMaquina : pla.idMaquina ,
                         nombreMaquina : pla.nombreMaquina ,
@@ -90,13 +91,14 @@ router.post( '/listado', async ( req , res ) => {
                 join turnos tur on txp.id_turno = tur.id
                 where txp.estado = 1
                 and txp.id_planilla in ( ${ listaIdPlanillasProduc } )  ; `
-
+               
                 var sqlConsultaPM = ` select pmxp.id as idParadaMaquinaXplanilla , pm.id as idParadaMaquina , pm.nombre as nombreParadaMaquina ,
                 pmxp.hora_incio as horaInicioParadaMaquina , pmxp.hora_fin as horaFinParadaMaquina , pmxp.id_planilla as idPlanilla , pm.tipo as tipoParadaMaquina
                 from paradas_maquinas_x_planilla pmxp
                 join paradas_maquina pm on pmxp.id_paradas_maquina = pm.id
                 where pmxp.estado = 1
                 and pmxp.id_planilla in ( ${ listaIdPlanillasProduc } ) ; `
+   
                 const trabajadoresXplanilla = await  consultaOperariosXplanilla.query( sqlConsultaOperariosXplanilla + sqlConsultaPM )
                 if(trabajadoresXplanilla.recordsets[0] && trabajadoresXplanilla.recordsets[1]){
                     vecTrabajadores = trabajadoresXplanilla.recordsets[0]
@@ -112,6 +114,8 @@ router.post( '/listado', async ( req , res ) => {
                     join defectos d on rxtyp.id_defecto = d.id
                     where rxtyp.estado = 1
                     and rxtyp.id_trabajador_x_planilla in ( ${ listaIdTrabajadores } ) ; `
+
+
                     const rechazos = await consultaRechazos.query( sqlConsultaRechazos )
                     if( rechazos.recordset ){
                         vecRechazos = rechazos.recordset
@@ -125,11 +129,12 @@ router.post( '/listado', async ( req , res ) => {
                         zxryp.id_rechazos_x_trabajador_y_planilla as idRechazosXtrabajadorYplanilla
                         from zonas_x_rechazo_x_planilla zxryp
                         where zxryp.estado = 1
-                        and zxryp.id_rechazos_x_trabajador_y_planilla in ( ${ listaIdRechazos } )`
+                        and zxryp.id_rechazos_x_trabajador_y_planilla in ( ${ listaIdRechazos } ) ; `
+
 
                         var direrenciaEnMinutos = (horaInicio,horaFin) => {
-                            const h_inicio = new Moment ( String ( horaInicio ) ).format ( "HH:mm" )
-                            var h_fin = new Moment ( String ( horaFin ) ).format ( "HH:mm" )
+                            const h_inicio = new Moment (  horaInicio  ).format ( "HH:mm" )
+                            var h_fin = new Moment (  horaFin  ).format ( "HH:mm" )
                             var hDesde = new Date(`1995-12-17T03:${h_inicio}`)
                             var hHasta = new Date(`1995-12-17T03:${h_fin}`)
                             if(h_inicio === '06:00' && h_fin === '06:00'){  return 24 * 60  }
