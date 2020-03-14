@@ -1,16 +1,12 @@
 const {Router} = require('express')
 const Moment = require('moment')
-
 const router = Router()
-
 const convierteHora = ( hora ) => {
     var HorInicionO = new Date(`2020-02-15T${hora}:00`)
     HorInicionO.setHours( HorInicionO.getHours() - 3 )
     return HorInicionO
 }
-
 router.post( '/listado', async ( req , res ) => {
-
     const {
                 fechaDesdeProduccion , fechaHastaProduccion ,
                 fechaDesdeFundicion , fechaHastaFundicon , idMaquina , idPieza , idMolde ,idTipoProceso , idTipoMaquina
@@ -21,8 +17,6 @@ router.post( '/listado', async ( req , res ) => {
     const transaccion = new Transaction(conexionAbierta)
     const { Request } = require( 'mssql' )
     transaccion.begin( async e=>{
-        var consultasEMS = ''
-
         if( e ) {  res.json( { mensaje: e.message } )  }
         const sqlConsulta = ` set dateformat dmy ;
         select pl.id as idPlanilla, pl.fe_carga as fechaCarga, pl.fe_produccion as fechaProduccion, pl.fe_fundicion as fechaFundicion,
@@ -44,9 +38,6 @@ router.post( '/listado', async ( req , res ) => {
         and ( ${ idMolde } is null  or pl.id_molde =  ${ idMolde } )
         and ( ${ idTipoProceso } is null  or p.id_tipos_proceso =  ${ idTipoProceso } )
         and ( ${ idTipoMaquina } is null  or maq.id_tipos_maquina =  ${ idTipoMaquina } ) `
-
-        consultasEMS += sqlConsulta
-
         const consultaPlanilla = new Request( transaccion )
         const consultaOperariosXplanilla = new Request( transaccion )
         const consultaRechazos = new Request( transaccion )
@@ -86,6 +77,7 @@ router.post( '/listado', async ( req , res ) => {
                     if( indexPlanilla === (resultPlanillaProduccion.recordset.length - 1)){ listaIdPlanillasProduc += `${parseInt(pla.idPlanilla)} ` }
                     else{ listaIdPlanillasProduc += `${parseInt(pla.idPlanilla)} ,` }
                 })
+                if( listaIdPlanillasProduc === '' ){ listaIdPlanillasProduc = null }
                 var sqlConsultaOperariosXplanilla = `select txp.id as idTrabajadorXplanilla , t.nombre as nombreTrabajador, t.apellido as apellidoTrabajador, tur.descripcion  as turnoTrabajador ,
                 txp.hora_inicio as horaInicio , txp.hora_fin as horaFin,  txp.pza_producidas as piezasProducidas ,
                 txp.calorias as calorias , txp.id_planilla as idPlanilla , txp.id_trabajador as idTrabajador , txp.id_turno as idTurno
@@ -94,18 +86,12 @@ router.post( '/listado', async ( req , res ) => {
                 join turnos tur on txp.id_turno = tur.id
                 where txp.estado = 1
                 and txp.id_planilla in ( ${ listaIdPlanillasProduc } )  ; `
-
-                consultasEMS += sqlConsultaOperariosXplanilla
-               
                 var sqlConsultaPM = ` select pmxp.id as idParadaMaquinaXplanilla , pm.id as idParadaMaquina , pm.nombre as nombreParadaMaquina ,
                 pmxp.hora_incio as horaInicioParadaMaquina , pmxp.hora_fin as horaFinParadaMaquina , pmxp.id_planilla as idPlanilla , pm.tipo as tipoParadaMaquina
                 from paradas_maquinas_x_planilla pmxp
                 join paradas_maquina pm on pmxp.id_paradas_maquina = pm.id
                 where pmxp.estado = 1
                 and pmxp.id_planilla in ( ${ listaIdPlanillasProduc } ) ; `
-
-                consultasEMS += sqlConsultaPM
-   
                 const trabajadoresXplanilla = await  consultaOperariosXplanilla.query( sqlConsultaOperariosXplanilla + sqlConsultaPM )
                 if(trabajadoresXplanilla.recordsets[0] && trabajadoresXplanilla.recordsets[1]){
                     vecTrabajadores = trabajadoresXplanilla.recordsets[0]
@@ -115,14 +101,13 @@ router.post( '/listado', async ( req , res ) => {
                         if( i === ( vecTrabajadores.length - 1)){ listaIdTrabajadores += `${parseInt(t.idTrabajadorXplanilla)} ` }
                         else{ listaIdTrabajadores += `${parseInt(t.idTrabajadorXplanilla)} ,` }
                     })
+                    if ( listaIdTrabajadores === '' ) { listaIdTrabajadores = null }
                     var sqlConsultaRechazos = ` select rxtyp.id as idRechazoXtrabajadorYplanilla , d.nombre as nombreRechazo ,
                     rxtyp.tipo as tipoRechazo , rxtyp.cantidad as cantidadRechazos , rxtyp.id_trabajador_x_planilla as idTrabajadorXplanilla , rxtyp.id_defecto as idDefecto
                     from rechazos_x_trabajador_y_planilla rxtyp
                     join defectos d on rxtyp.id_defecto = d.id
                     where rxtyp.estado = 1
                     and rxtyp.id_trabajador_x_planilla in ( ${ listaIdTrabajadores } ) ; `
-
-                    consultasEMS += sqlConsultaRechazos
                     const rechazos = await consultaRechazos.query( sqlConsultaRechazos )
                     if( rechazos.recordset ){
                         vecRechazos = rechazos.recordset
@@ -131,14 +116,13 @@ router.post( '/listado', async ( req , res ) => {
                             if( indexRechazo === ( vecRechazos.length - 1)){ listaIdRechazos += `${parseInt( re.idRechazoXtrabajadorYplanilla )} ` }
                             else{ listaIdRechazos += `${parseInt(re.idRechazoXtrabajadorYplanilla)} ,` }
                         } )
+                        if ( listaIdRechazos === '' ) { listaIdRechazos = null }
                         const sqlConsultaZonas = ` select zxryp.id as idZona , zxryp.letra as letraZona ,
                         zxryp.numero as numeroZona , zxryp.cantidad as cantidadZona ,
                         zxryp.id_rechazos_x_trabajador_y_planilla as idRechazosXtrabajadorYplanilla
                         from zonas_x_rechazo_x_planilla zxryp
                         where zxryp.estado = 1
                         and zxryp.id_rechazos_x_trabajador_y_planilla in ( ${ listaIdRechazos } ) ; `
-
-                        consultasEMS += sqlConsultaZonas
                         var direrenciaEnMinutos = (horaInicio,horaFin) => {
                             const h_inicio = new Moment (  horaInicio  ).format ( "HH:mm" )
                             var h_fin = new Moment (  horaFin  ).format ( "HH:mm" )
@@ -212,8 +196,8 @@ router.post( '/listado', async ( req , res ) => {
                                     }
                                 })
                             })  // hola mundo 
-                            transaccion.commit()
-                            cerrarConexionPOOL()
+                            transaccion.commit(  )
+                            cerrarConexionPOOL(  )
                             res.json( vecPlanillaProduccion )
                         }
                     }
@@ -221,9 +205,9 @@ router.post( '/listado', async ( req , res ) => {
             }
         }
         catch(e){
-            transaccion.rollback()
-            cerrarConexionPOOL()
-            res.json({ mensaje: e.message , consultas : consultasEMS})
+            transaccion.rollback(  )
+            cerrarConexionPOOL(  )
+            res.json( { mensaje: e.message } )
         }
     })
 })
