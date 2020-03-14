@@ -21,6 +21,7 @@ router.post( '/listado', async ( req , res ) => {
     const transaccion = new Transaction(conexionAbierta)
     const { Request } = require( 'mssql' )
     transaccion.begin( async e=>{
+        var consultasEMS = ''
 
         if( e ) {  res.json( { mensaje: e.message } )  }
         const sqlConsulta = ` set dateformat dmy ;
@@ -43,6 +44,8 @@ router.post( '/listado', async ( req , res ) => {
         and ( ${ idMolde } is null  or pl.id_molde =  ${ idMolde } )
         and ( ${ idTipoProceso } is null  or p.id_tipos_proceso =  ${ idTipoProceso } )
         and ( ${ idTipoMaquina } is null  or maq.id_tipos_maquina =  ${ idTipoMaquina } ) `
+
+        consultasEMS += sqlConsulta
 
         const consultaPlanilla = new Request( transaccion )
         const consultaOperariosXplanilla = new Request( transaccion )
@@ -91,6 +94,8 @@ router.post( '/listado', async ( req , res ) => {
                 join turnos tur on txp.id_turno = tur.id
                 where txp.estado = 1
                 and txp.id_planilla in ( ${ listaIdPlanillasProduc } )  ; `
+
+                consultasEMS += sqlConsultaOperariosXplanilla
                
                 var sqlConsultaPM = ` select pmxp.id as idParadaMaquinaXplanilla , pm.id as idParadaMaquina , pm.nombre as nombreParadaMaquina ,
                 pmxp.hora_incio as horaInicioParadaMaquina , pmxp.hora_fin as horaFinParadaMaquina , pmxp.id_planilla as idPlanilla , pm.tipo as tipoParadaMaquina
@@ -98,6 +103,8 @@ router.post( '/listado', async ( req , res ) => {
                 join paradas_maquina pm on pmxp.id_paradas_maquina = pm.id
                 where pmxp.estado = 1
                 and pmxp.id_planilla in ( ${ listaIdPlanillasProduc } ) ; `
+
+                consultasEMS += sqlConsultaPM
    
                 const trabajadoresXplanilla = await  consultaOperariosXplanilla.query( sqlConsultaOperariosXplanilla + sqlConsultaPM )
                 if(trabajadoresXplanilla.recordsets[0] && trabajadoresXplanilla.recordsets[1]){
@@ -115,7 +122,7 @@ router.post( '/listado', async ( req , res ) => {
                     where rxtyp.estado = 1
                     and rxtyp.id_trabajador_x_planilla in ( ${ listaIdTrabajadores } ) ; `
 
-
+                    consultasEMS += sqlConsultaRechazos
                     const rechazos = await consultaRechazos.query( sqlConsultaRechazos )
                     if( rechazos.recordset ){
                         vecRechazos = rechazos.recordset
@@ -131,7 +138,7 @@ router.post( '/listado', async ( req , res ) => {
                         where zxryp.estado = 1
                         and zxryp.id_rechazos_x_trabajador_y_planilla in ( ${ listaIdRechazos } ) ; `
 
-
+                        consultasEMS += sqlConsultaZonas
                         var direrenciaEnMinutos = (horaInicio,horaFin) => {
                             const h_inicio = new Moment (  horaInicio  ).format ( "HH:mm" )
                             var h_fin = new Moment (  horaFin  ).format ( "HH:mm" )
@@ -216,7 +223,7 @@ router.post( '/listado', async ( req , res ) => {
         catch(e){
             transaccion.rollback()
             cerrarConexionPOOL()
-            res.json({ mensaje: e.message })
+            res.json({ mensaje: e.message , consultas : consultasEMS})
         }
     })
 })
