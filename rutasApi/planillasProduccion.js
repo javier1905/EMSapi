@@ -1,4 +1,5 @@
 const {Router} = require('express')
+const Moment = require('moment')
 
 const router = Router()
 
@@ -14,24 +15,26 @@ router.post( '/listado', async ( req , res ) => {
                 fechaDesdeProduccion , fechaHastaProduccion ,
                 fechaDesdeFundicion , fechaHastaFundicon , idMaquina , idPieza , idMolde ,idTipoProceso , idTipoMaquina
     } = req.body
-    const { abrirConexionPOOL , cerrarConexionPOOL } = require('../conexiones/sqlServer')
-    const conexionAbierta = await abrirConexionPOOL()
-    const { Transaction } = require('mssql')
+    const { abrirConexionPOOL , cerrarConexionPOOL } = require( '../conexiones/sqlServer' )
+    const conexionAbierta = await abrirConexionPOOL(  )
+    const { Transaction } = require( 'mssql' )
     const transaccion = new Transaction(conexionAbierta)
-    const { Request } = require('mssql')
+    const { Request } = require( 'mssql' )
     transaccion.begin( async e=>{
 
-        if( e ) {  res.json({ mensaje: e.message })  }
+        if( e ) {  res.json( { mensaje: e.message } )  }
         const sqlConsulta = `set dateformat dmy ;
         select pl.id as idPlanilla, pl.fe_carga as fechaCarga, pl.fe_produccion as fechaProduccion, pl.fe_fundicion as fechaFundicion, 
-        pl.hora_inicio as horaInicio , pl.hora_fin as horaFin,maq.nombre as nombreMaquina , pie.nombre as nombrePieza , 
-        mol.nombre, tp.nombre as nombreTipoProceso , pl.id_molde as idMolde , pl.id_proceso as idProceso
+        pl.hora_inicio as horaInicio , pl.hora_fin as horaFin, tm.id_operacion as idOperacion, maq.id as idMaquina ,maq.nombre as nombreMaquina , pie.id as idPieza,  
+        pie.nombre as nombrePieza , mol.id as idMolde,  mol.nombre as nombreMolde , tp.id as idTipoProceso, tp.nombre as tipoProceso
+        , pl.id_proceso as idProceso
         from planillas_produccion pl
         join moldes mol on pl.id_molde = mol.id
         join procesos p on pl.id_proceso = p.id
         join piezas pie on p.id_pieza = pie.id
         join maquinas maq on p.id_maquina = maq.id
         join tipos_proceso tp on p.id_tipos_proceso = tp.id
+        join tipos_maquina tm on maq.id_tipos_maquina = tp.id
         where pl.estado = 1
         and pl.fe_fundicion between '${ fechaDesdeFundicion }' and '${ fechaHastaFundicon }'
         and pl.fe_produccion between '${ fechaDesdeProduccion }' and '${ fechaHastaProduccion }'
@@ -45,17 +48,35 @@ router.post( '/listado', async ( req , res ) => {
         const consultaRechazos = new Request( transaccion )
         const consultaZonas = new Request( transaccion )
         const consultaPM = new Request( transaccion )
-
-        var vecPlanillaProduccion
+        var vecPlanillaProduccion = []
         var vecTrabajadores
         var vecRechazos
         var vecZonas
         var vecPM
-        
         try{
             var resultPlanillaProduccion = await consultaPlanilla.query( sqlConsulta )
             if(Array.isArray(resultPlanillaProduccion.recordset)){
-                vecPlanillaProduccion = resultPlanillaProduccion.recordset
+                resultPlanillaProduccion.recordset.forEach( pla => {
+                    var planilla  = {
+                        idPlanilla : pla.idPlanilla ,
+                        fechaCarga : pla.fechaCarga ,
+                        fechaProduccion : pla.fechaProduccion ,
+                        fechaFundicion : pla.fechaFundicion ,
+                        horaInicio : new Moment ( pla.horaInicio ).format( "HH:mm" ),
+                        horaFin : new Moment ( pla.horaFin ).format( "HH:mm" ),
+                        idOperacion : pla.idOperacion ,
+                        idMaquina : pla.idMaquina ,
+                        nombreMaquina : pla.nombreMaquina ,
+                        idPieza : pla.idPieza ,
+                        nombrePieza : pla.nombrePieza ,
+                        idMolde : pla.idMolde ,
+                        nombreMolde : pla.nombreMolde ,
+                        idTipoProceso : pla.idTipoProceso ,
+                        tipoProceso : pla.tipoProceso ,
+                        idProceso : pla.idProceso
+                    }
+                    vecPlanillaProduccion.push(planilla)
+                } )
                 var listaIdPlanillasProduc = ''
                 vecPlanillaProduccion.forEach((pla,indexPlanilla) => {
                     if( indexPlanilla === (resultPlanillaProduccion.recordset.length - 1)){ listaIdPlanillasProduc += `${parseInt(pla.idPlanilla)} ` }
@@ -70,8 +91,8 @@ router.post( '/listado', async ( req , res ) => {
                 where txp.estado = 1
                 and txp.id_planilla in ( ${ listaIdPlanillasProduc } )  ;`
 
-                var sqlConsultaPM = ` select pmxp.id as idParadaMaquinaXplanilla , pm.id as idParadaMaquina , pm.nombre as nombreParadaMaquina , 
-                pmxp.hora_incio as horaInicioParadaMaquina , pmxp.hora_fin as horaFinParadaMaquina , pmxp.id_planilla as idPlanilla
+                var sqlConsultaPM = ` select pmxp.id as idParadaMaquinaXplanilla , pm.id as idParadaMaquina , pm.nombre as nombreParadaMaquina ,
+                pmxp.hora_incio as horaInicioParadaMaquina , pmxp.hora_fin as horaFinParadaMaquina , pmxp.id_planilla as idPlanilla , pm.tipo as tipoParadaMaquina
                 from paradas_maquinas_x_planilla pmxp
                 join paradas_maquina pm on pmxp.id_paradas_maquina = pm.id
                 where pmxp.estado = 1
@@ -105,64 +126,77 @@ router.post( '/listado', async ( req , res ) => {
                         from zonas_x_rechazo_x_planilla zxryp
                         where zxryp.estado = 1
                         and zxryp.id_rechazos_x_trabajador_y_planilla in ( ${ listaIdRechazos } )`
+
+                        var direrenciaEnMinutos = (horaInicio,horaFin) => {
+                            const h_inicio = new Moment ( String ( horaInicio ) ).format ( "HH:mm" )
+                            var h_fin = new Moment ( String ( horaFin ) ).format ( "HH:mm" )
+                            var hDesde = new Date(`1995-12-17T03:${h_inicio}`)
+                            var hHasta = new Date(`1995-12-17T03:${h_fin}`)
+                            if(h_inicio === '06:00' && h_fin === '06:00'){  return 24 * 60  }
+                            else if((hHasta-hDesde)/1000 < 0){ return (hHasta-hDesde)/1000 + 1440 }
+                            else{ return (hHasta-hDesde)/1000 }
+                        }
                         var listaZonas = await consultaZonas.query( sqlConsultaZonas )
                         if( listaZonas.recordset ){
                             vecZonas = listaZonas.recordset
                             vecPlanillaProduccion.forEach( (pl , indexPlanilla ) => {
-                                pl.vecTrabajadores = []
-                                pl.vecParadasMaquina = []
+                                pl.vecOperarios = []
+                                pl.vecParadasMaquinaSeleccionada = []
                                 vecPM.forEach( pm => {
                                     if( parseInt( pm.idPlanilla ) === parseInt( pl.idPlanilla ) ) {
                                         var paradaMaq = {
                                             idParadaMaquinaXplanilla: pm.idParadaMaquinaXplanilla ,
                                             idParadaMaquina : pm.idParadaMaquina ,
                                             nombreParadaMaquina : pm.nombreParadaMaquina ,
-                                            horaInicioParadaMaquina : pm.horaInicioParadaMaquina ,
-                                            horaFinParadaMaquina : pm.horaFinParadaMaquina
+                                            desdeParadaMaquina : new Moment ( pm.horaInicioParadaMaquina ).format( "HH:mm" ) ,
+                                            hastaParadaMaquina : new Moment ( pm.horaFinParadaMaquina ).format( "HH:mm" ) ,
+                                            duracionParadaMaquina : direrenciaEnMinutos( pm.horaInicioParadaMaquina ,  pm.horaFinParadaMaquina ) ,
+                                            tipoParadaMaquina : pm.tipoParadaMaquina
                                         }
-                                        pl.vecParadasMaquina.push( paradaMaq )
+                                        pl.vecParadasMaquinaSeleccionada.push( paradaMaq )
                                     }
                                 })
                                 vecTrabajadores.forEach( (tr , indexTrabajador) => {
                                     if ( parseInt( pl.idPlanilla ) === parseInt ( tr.idPlanilla ) ) {
                                         var traXpla = {
                                             idTrabajadorXplanilla : tr.idTrabajadorXplanilla,
-                                            idTrabajador : tr.idTrabajador ,
+                                            idOperario : tr.idTrabajador ,
                                             idTurno : tr.idTurno ,
                                             nombreTrabajador : tr.nombreTrabajador,
+                                            nombre : tr.idTrabajador ,
                                             apellidoTrabajador : tr.apellidoTrabajador,
                                             turnoTrabajador : tr.turnoTrabajador,
-                                            horaInicio : tr.horaInicio,
-                                            horaFin : tr.horaFin,
-                                            piezasProducidas : tr.piezasProducidas,
+                                            horaInicio : new Moment ( tr.horaInicio ).format( "HH:mm" ) ,
+                                            horaFin : new Moment ( tr.horaFin ).format( "HH:mm" ) ,
+                                            produccion : tr.piezasProducidas,
                                             calorias : tr.calorias,
-                                            vecRechazos : [ ]
+                                            vecRechazo : [ ]
                                         }
                                         vecRechazos.forEach( re => {
                                             if( parseInt( traXpla.idTrabajadorXplanilla ) === parseInt ( re.idTrabajadorXplanilla ) ) {
                                                 var rech = {
                                                     idRechazoXtrabajadorYplanilla : re.idRechazoXtrabajadorYplanilla,
-                                                    idDefecto : re.idDefecto ,
+                                                    idRechazo : re.idDefecto ,
                                                     nombreRechazo : re.nombreRechazo ,
-                                                    tipoRechazo : re.tipoRechazo ,
-                                                    cantidadRechazos : re.cantidadRechazos ,
+                                                    tipo : re.tipoRechazo ,
+                                                    cantidadRechazo : re.cantidadRechazos ,
                                                     vecZonas: []
                                                 }
                                                     vecZonas.forEach( zon => {
                                                         if( parseInt( zon.idRechazosXtrabajadorYplanilla ) === parseInt( rech.idRechazoXtrabajadorYplanilla  )){
                                                             var zonaXrecha = {
                                                                 idZona : zon.idZona ,
-                                                                letraZona : zon.letraZona ,
-                                                                numeroZona : zon.numeroZona ,
-                                                                cantidadZona : zon.cantidadZona
+                                                                letra : zon.letraZona ,
+                                                                numero : zon.numeroZona ,
+                                                                cantidad : zon.cantidadZona
                                                             }
                                                             rech.vecZonas.push( zonaXrecha )
                                                         }
                                                     })
-                                                traXpla.vecRechazos.push( rech )
+                                                traXpla.vecRechazo.push( rech )
                                             }
                                         })
-                                        pl.vecTrabajadores.push( traXpla )
+                                        pl.vecOperarios.push( traXpla )
                                     }
                                 })
                             })  // hola mundo 
