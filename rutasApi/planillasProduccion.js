@@ -6,6 +6,26 @@ const convierteHora = ( hora ) => {
     HorInicionO.setHours( HorInicionO.getHours() - 3 )
     return HorInicionO
 }
+router.post ( '/eliminar' , async ( req , res ) => {
+    const { idPlanilla } = req.body
+    const { abrirConexionPOOL ,cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
+    const conexionAbierta = await abrirConexionPOOL ( 'eliminaPlanilla' )
+    const { Request } = require ( 'mssql' )
+    const consulta = new Request ( conexionAbierta )
+    try{
+        const result = await consulta.query( `update planillas_produccion
+        set
+        estado = 0
+        where id = ${ parseInt ( idPlanilla ) }`
+        )
+        cerrarConexionPOOL (  )
+        res.json ( { mensaje : 'Eliminacion exitosa !' } )
+    }
+    catch (e ) {
+        cerrarConexionPOOL (  )
+        res.json ( { mensaje : e.message } )
+    }
+})
 router.post( '/listado', async ( req , res ) => {
     const {
                 fechaDesdeProduccion , fechaHastaProduccion ,
