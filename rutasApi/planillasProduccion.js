@@ -29,14 +29,14 @@ router.post ( '/eliminar' , async ( req , res ) => {
 router.post( '/listado', async ( req , res ) => {
     const {
                 fechaDesdeProduccion , fechaHastaProduccion ,
-                fechaDesdeFundicion , fechaHastaFundicon , idMaquina , idPieza , idMolde ,idTipoProceso , idTipoMaquina
+                fechaDesdeFundicion , fechaHastaFundicon , idMaquina , idPieza , idMolde ,idTipoProceso , idOperacion
     } = req.body
     const { abrirConexionPOOL , cerrarConexionPOOL } = require( '../conexiones/sqlServer' )
     const conexionAbierta = await abrirConexionPOOL(  )
     const { Transaction } = require( 'mssql' )
     const transaccion = new Transaction(conexionAbierta)
     const { Request } = require( 'mssql' )
-    transaccion.begin( async e=>{
+    transaccion.begin( async e =>{
         if( e ) {  res.json( { mensaje: e.message } )  }
         const sqlConsulta = ` set dateformat dmy ;
         select pl.id as idPlanilla, pl.fe_carga as fechaCarga, pl.fe_produccion as fechaProduccion, pl.fe_fundicion as fechaFundicion,
@@ -57,7 +57,7 @@ router.post( '/listado', async ( req , res ) => {
         and ( ${ idPieza } is null  or p.id_pieza =  ${ idPieza } )
         and ( ${ idMolde } is null  or pl.id_molde =  ${ idMolde } )
         and ( ${ idTipoProceso } is null  or p.id_tipos_proceso =  ${ idTipoProceso } )
-        and ( ${ idTipoMaquina } is null  or maq.id_tipos_maquina =  ${ idTipoMaquina } ) `
+        and ( ${ idOperacion } is null  or tm.id_operacion =  ${ idOperacion } ) `
         const consultaPlanilla = new Request( transaccion )
         const consultaOperariosXplanilla = new Request( transaccion )
         const consultaRechazos = new Request( transaccion )
