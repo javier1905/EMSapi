@@ -319,7 +319,8 @@ router.post( '/update', async ( req , res ) => {
                             hora_inicio: process.env.NODE_ENV === 'development'? convierteHora( HoraInicioProduccion ) : new Date(`2020-02-15T${HoraInicioProduccion}:00`) ,
                             hora_fin: process.env.NODE_ENV === 'development'? convierteHora( HoraFinProduccion ) : new Date(`2020-02-15T${HoraFinProduccion}:00`) ,
                             id_turno: parseInt( idTurno ) ,
-                            id_molde: parseInt( idMolde )
+                            id_molde: parseInt( idMolde ) ,
+                            idPlanilla : parseInt ( idPlanilla )
                         }
                         var resultC1
                         resultC1 = await ps_insercionPlanillaProduccion.execute( datosPlanillaProduccion )
