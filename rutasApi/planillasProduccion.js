@@ -237,6 +237,7 @@ router.post( '/update', async ( req , res ) => {
         HoraFinProduccion ,  idOperacion , idMaquina ,  idPieza ,  idMolde , idTipoProceso ,
         vecOperarios , vecParadasMaquinaSeleccionada , idPlanilla
     } = req.body
+    console.log ( idPlanilla )
     const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
     const conexionAbierta = await abrirConexionPOOL ( 'updatePlanilla' )
     const { Transaction } =  require ( 'mssql' )
@@ -248,49 +249,37 @@ router.post( '/update', async ( req , res ) => {
     const asincrono = require ( 'async' )
     transaccion.begin ( async function ( err )  {
         if ( !err ) {
-            var idZonasDelete = ''
-            var idRechazosDelete = ''
-            var idOperariosDelete = ''
-            var idPmDelete = ''
-            vecParadasMaquinaSeleccionada.forEach ( ( p , ip ) => {
-                if(( vecParadasMaquinaSeleccionada.length -1 )  === ip  ) {
-                    idPmDelete += ` ${parseInt ( p.idParadaMaquinaXplanilla )}  `
-                }
-                else {
-                    idPmDelete += ` ${parseInt ( p.idParadaMaquinaXplanilla )} , `
-                }
-            } )
-            vecOperarios.forEach ( ( o , io ) => {
-                if(( vecOperarios.length -1 )  === io  ) {
-                    idOperariosDelete += ` ${parseInt( o.idRechazoXtrabajadorYplanilla )}  `
-                }
-                else {
-                    idOperariosDelete += ` ${parseInt( o.idRechazoXtrabajadorYplanilla )} , `
-                }
-                o.vecRechazo.forEach ( ( r , ir ) => {
-                    if(( o.vecRechazo.length -1 )  === ir  ) {
-                        idRechazosDelete += ` ${parseInt ( r.idRechazoXtrabajadorYplanilla )}  `
-                    }
-                    else {
-                        idRechazosDelete += ` ${parseInt ( r.idRechazoXtrabajadorYplanilla )} , `
-                    }
-                    r.vecZonas.forEach ( ( z , iz ) => {
-                        if(( r.vecZonas.length -1 )  === iz  ) {
-                            idZonasDelete += ` ${parseInt ( z.idZona ) }  `
+            const metodoTransaccion =  async (  ) => {
+                try {
+                    var idZonasDelete = ''
+                    var idRechazosDelete = ''
+                    var idOperariosDelete = ''
+                    var idPmDelete = ''
+                    vecParadasMaquinaSeleccionada.forEach ( ( p , ip ) => {
+                        if(( vecParadasMaquinaSeleccionada.length -1 )  === ip  ) {
+                            idPmDelete += ` ${parseInt ( p.idParadaMaquinaXplanilla )}  `
                         }
                         else {
-                            idZonasDelete += ` ${parseInt ( z.idZona )} , `
+                            idPmDelete += ` ${parseInt ( p.idParadaMaquinaXplanilla )} , `
                         }
-                    })
-                } )
-            } )
-            const metodoTransaccion =  async (  ) => {
-                try{
+                    } )
+                    vecOperarios.forEach ( ( o , io ) => {
+                        idOperariosDelete += ` ${parseInt( o.idTrabajadorXplanilla )} , `
+                        o.vecRechazo.forEach ( ( r , ir ) => {
+                            idRechazosDelete += ` ${parseInt ( r.idRechazoXtrabajadorYplanilla )} , `
+                            r.vecZonas.forEach ( ( z , iz ) => {
+                                idZonasDelete += ` ${parseInt ( z.idZona )} , `
+                            })
+                        } )
+                    } )
+                    if ( idOperariosDelete !== '' ) { idOperariosDelete =  idOperariosDelete.trim (  ).substring ( 0 , idOperariosDelete.trim (  ).length - 1 )}
+                    if ( idRechazosDelete !== '' ) { idRechazosDelete =  idRechazosDelete.trim (  ).substring ( 0 , idRechazosDelete.trim (  ).length - 1 )}
+                    if ( idZonasDelete !== '' ) { idZonasDelete =  idZonasDelete.trim (  ).substring ( 0 , idZonasDelete.trim (  ).length - 1 )}
                     const resultDelete = await deleteZonasRechazosOperariosPm.query ( ` delete zonas_x_rechazo_x_planilla where id in ( ${ idZonasDelete === '' ? null : idZonasDelete} ) ;
                     delete rechazos_x_trabajador_y_planilla where id in ( ${ idRechazosDelete === '' ? null : idRechazosDelete } ) ;
                     delete trabajador_x_planilla where id in ( ${ idOperariosDelete === '' ? null : idOperariosDelete } ) ;
                     delete paradas_maquinas_x_planilla where id in ( ${ idPmDelete === '' ? null : idPmDelete } ) ; ` )
-                    if ( resultDelete.recordset ) {
+                    if ( resultDelete ) {
                         ps_insercionPlanillaProduccion.input ( 'fe_produccion' , mssql.Date )
                         ps_insercionPlanillaProduccion.input ( 'fe_fundicion' , mssql.Date )
                         ps_insercionPlanillaProduccion.input ( 'hora_inicio' , mssql.Time )
@@ -326,7 +315,7 @@ router.post( '/update', async ( req , res ) => {
                         if ( unprepared ) {
                             transaccion.rollback (  )
                             cerrarConexionPOOL (  )
-                            res.json ( { mensaje:'Error InsercionPlanilla'.yellow } )
+                            res.json ( { mensaje : 'Error InsercionPlanilla' } ).status ( 403 )
                         }
                         if ( resultC1 ) {
                             var vecOperariosXplanilla = [  ]
@@ -396,7 +385,7 @@ router.post( '/update', async ( req , res ) => {
                                 if ( err ) {
                                     transaccion.rollback (  )
                                     cerrarConexionPOOL (  )
-                                    res.json ( { mensaje:err.message } )
+                                    res.json ( { mensaje : err.message } ).status ( 403 )
                                 }
                                 else {
                                     var vecParadasDeMaquina = [  ]
@@ -426,23 +415,23 @@ router.post( '/update', async ( req , res ) => {
                                         if ( erroR ) {
                                             transaccion.rollback (  )
                                             cerrarConexionPOOL (  )
-                                            res.json ( { mensaje : erroR.message } )
+                                            res.json ( { mensaje : erroR.message } ).status ( 403 )
                                         }
                                         else {
                                             transaccion.commit (  )
                                             cerrarConexionPOOL (  )
                                             res.setHeader ( 'Content-Type' , 'text/event-stream' )
-                                            res.json ( { mensaje : 'Actualizacion exitosa' } )
+                                            res.status ( 200 ).json ( { mensaje : 'Actualizacion exitosa' } )
                                         }
-                                    })
+                                    } )
                                 }
-                            })
+                            } )
                         }
                     }
                 }
-                catch(e){
-                    transaccion.rollback()
-                    cerrarConexionPOOL()
+                catch ( e ) {
+                    transaccion.rollback (  )
+                    cerrarConexionPOOL (  )
                     res.json( { mensaje: e.message , mensaje2: 'Error catch FINAL' } )
                 }
             }
