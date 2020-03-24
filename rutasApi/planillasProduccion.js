@@ -6,7 +6,7 @@ const convierteHora = ( hora ) => {
     HorInicionO.setHours( HorInicionO.getHours() - 3 )
     return HorInicionO
 }
-router.post ( '/eliminar' , async ( req , res ) => {
+router.post ( '/delete' , async ( req , res ) => {
     const { idPlanilla } = req.body
     const { abrirConexionPOOL ,cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
     const conexionAbierta = await abrirConexionPOOL ( 'eliminaPlanilla' )
@@ -26,7 +26,7 @@ router.post ( '/eliminar' , async ( req , res ) => {
         res.json ( { mensaje : e.message } )
     }
 })
-router.post( '/listado', async ( req , res ) => {
+router.post( '/listar', async ( req , res ) => {
     const {
                 fechaDesdeProduccion , fechaHastaProduccion ,
                 fechaDesdeFundicion , fechaHastaFundicon , idMaquina , idPieza , idMolde ,idTipoProceso , idOperacion
@@ -237,19 +237,17 @@ router.post( '/update', async ( req , res ) => {
         HoraFinProduccion ,  idOperacion , idMaquina ,  idPieza ,  idMolde , idTipoProceso ,
         vecOperarios , vecParadasMaquinaSeleccionada , idPlanilla
     } = req.body
-    var  idPlanillaProduccion
-    const {abrirConexionPOOL, cerrarConexionPOOL} = require( '../conexiones/sqlServer' )
+    const { abrirConexionPOOL , cerrarConexionPOOL } = require( '../conexiones/sqlServer' )
     const conexionAbierta = await abrirConexionPOOL( 'consultasa' )
     const { Transaction } =  require( 'mssql' )
     const mssql  = require( 'mssql' )
-    const { Request,PreparedStatement } = require( 'mssql' )
-    const transaccion =  await new Transaction( conexionAbierta )
+    const { Request,PreparedStatement } = require ( 'mssql' )
+    const transaccion =  await new Transaction ( conexionAbierta )
     const ps_insercionPlanillaProduccion = await new PreparedStatement ( transaccion )
-    const consultaIDplanillaProduccion = await new Request( transaccion )
-    const deleteZonasRechazosOperariosPm = await new Request( transaccion )
-    const asincrono = require( 'async' )
+    const deleteZonasRechazosOperariosPm = await new Request ( transaccion )
+    const asincrono = require ( 'async' )
     transaccion.begin ( async function ( err )  {
-        if(!err){
+        if ( !err ) {
             var idZonasDelete = ''
             var idRechazosDelete = ''
             var idOperariosDelete = ''
@@ -293,12 +291,12 @@ router.post( '/update', async ( req , res ) => {
                     delete trabajador_x_planilla where id in ( ${ idOperariosDelete } ) ;
                     delete paradas_maquinas_x_planilla where id in ( ${ idPmDelete } ) ; ` )
                     if ( resultDelete.recordset ) {
-                        ps_insercionPlanillaProduccion.input ( 'fe_produccion',mssql.Date )
-                        ps_insercionPlanillaProduccion.input ( 'fe_fundicion',mssql.Date )
-                        ps_insercionPlanillaProduccion.input ( 'hora_inicio',mssql.Time )
-                        ps_insercionPlanillaProduccion.input ( 'hora_fin',mssql.Time )
-                        ps_insercionPlanillaProduccion.input ( 'id_molde',mssql.Int )
-                        ps_insercionPlanillaProduccion.input ( 'idPlanilla',mssql.Int )
+                        ps_insercionPlanillaProduccion.input ( 'fe_produccion' , mssql.Date )
+                        ps_insercionPlanillaProduccion.input ( 'fe_fundicion' , mssql.Date )
+                        ps_insercionPlanillaProduccion.input ( 'hora_inicio' , mssql.Time )
+                        ps_insercionPlanillaProduccion.input ( 'hora_fin' , mssql.Time )
+                        ps_insercionPlanillaProduccion.input ( 'id_molde' , mssql.Int )
+                        ps_insercionPlanillaProduccion.input ( 'idPlanilla' , mssql.Int )
                         await ps_insercionPlanillaProduccion.prepare (
                             `set dateformat dmy ;
                             declare @idProce int ;
@@ -323,49 +321,46 @@ router.post( '/update', async ( req , res ) => {
                             idPlanilla : parseInt ( idPlanilla )
                         }
                         var resultC1
-                        resultC1 = await ps_insercionPlanillaProduccion.execute( datosPlanillaProduccion )
-                        const unprepared = await ps_insercionPlanillaProduccion.unprepare()
-                        if( unprepared ) {
-                            transaccion.rollback()
-                            cerrarConexionPOOL()
-                            res.json( { mensaje:'Error InsercionPlanilla'.yellow } )
+                        resultC1 = await ps_insercionPlanillaProduccion.execute ( datosPlanillaProduccion )
+                        const unprepared = await ps_insercionPlanillaProduccion.unprepare (  )
+                        if ( unprepared ) {
+                            transaccion.rollback (  )
+                            cerrarConexionPOOL (  )
+                            res.json ( { mensaje:'Error InsercionPlanilla'.yellow } )
                         }
                         if ( resultC1 ) {
-                            idPlanillaProduccion = await consultaIDplanillaProduccion.query( `select max( id ) as idPlanilla from planillas_produccion` )
-                        }
-                        if(idPlanillaProduccion.recordset[0].idPlanilla && ! isNaN( idPlanillaProduccion.recordset[0].idPlanilla )){
-                            var vecOperariosXplanilla = []
-                            vecOperarios.forEach( operario => {
+                            var vecOperariosXplanilla = [  ]
+                            vecOperarios.forEach ( operario => {
                                 var op = {
-                                    calorias: parseInt( operario.calorias ),
-                                    pza_producidas: parseInt( operario.produccion ),
+                                    calorias : parseInt ( operario.calorias ) ,
+                                    pza_producidas : parseInt ( operario.produccion ) ,
                                     hora_inicio: process.env.NODE_ENV === 'development'? convierteHora( operario.horaInicio ) : new Date(`2020-02-15T${operario.horaInicio}:00`),
                                     hora_fin: process.env.NODE_ENV === 'development'? convierteHora( operario.horaFin ) : new Date(`2020-02-15T${operario.horaFin}:00`),
-                                    id_trabajador: parseInt( operario.idOperario),
-                                    id_planilla: parseInt( idPlanillaProduccion.recordset[0].idPlanilla ),
-                                    id_turno: parseInt( operario.idTurno ),
+                                    id_trabajador: parseInt ( operario.idOperario ) ,
+                                    id_planilla: parseInt ( idPlanilla ) ,
+                                    id_turno: parseInt( operario.idTurno ) ,
                                     vecRechazos: operario.vecRechazo
                                 }
-                                vecOperariosXplanilla.push( op )
+                                vecOperariosXplanilla.push ( op )
                             })
-                            asincrono.eachSeries(vecOperariosXplanilla,( trabajador, callback ) => {
+                            asincrono.eachSeries ( vecOperariosXplanilla , ( trabajador , callback ) => {
                                 const  ps_insercionTrabajadoresXPlanilla = new Request( transaccion )
-                                ps_insercionTrabajadoresXPlanilla.input( 'calorias', mssql.Int, trabajador.calorias )
-                                ps_insercionTrabajadoresXPlanilla.input( 'pza_producidas', mssql.Int, trabajador.pza_producidas )
-                                ps_insercionTrabajadoresXPlanilla.input( 'id_turno', mssql.Int, trabajador.id_turno )
-                                ps_insercionTrabajadoresXPlanilla.input( 'hora_inicio', mssql.Time, trabajador.hora_inicio )
-                                ps_insercionTrabajadoresXPlanilla.input( 'hora_fin', mssql.Time, trabajador.hora_fin )
-                                ps_insercionTrabajadoresXPlanilla.input( 'id_trabajador', mssql.Int, trabajador.id_trabajador )
-                                ps_insercionTrabajadoresXPlanilla.input( 'id_planilla', mssql.Int, trabajador.id_planilla )
+                                ps_insercionTrabajadoresXPlanilla.input ( 'calorias' , mssql.Int , trabajador.calorias )
+                                ps_insercionTrabajadoresXPlanilla.input ( 'pza_producidas' , mssql.Int , trabajador.pza_producidas )
+                                ps_insercionTrabajadoresXPlanilla.input ( 'id_turno' , mssql.Int , trabajador.id_turno )
+                                ps_insercionTrabajadoresXPlanilla.input ( 'hora_inicio' , mssql.Time , trabajador.hora_inicio )
+                                ps_insercionTrabajadoresXPlanilla.input ( 'hora_fin', mssql.Time , trabajador.hora_fin )
+                                ps_insercionTrabajadoresXPlanilla.input ( 'id_trabajador' , mssql.Int , trabajador.id_trabajador )
+                                ps_insercionTrabajadoresXPlanilla.input ( 'id_planilla' , mssql.Int , trabajador.id_planilla )
                                 var vecRechazosTrabajadorXplanilla = [  ]
-                                trabajador.vecRechazos.forEach( re => {
+                                trabajador.vecRechazos.forEach ( re => {
                                     var rechazoZ = {
-                                        cantidad: parseInt( re.cantidadRechazo ),
-                                        tipo: re.tipo ? 1 : 0,
-                                        id_defecto: parseInt( re.idRechazo ),
-                                        vecZonas: re.vecZonas
+                                        cantidad : parseInt ( re.cantidadRechazo ) ,
+                                        tipo: re.tipo ? 1 : 0 ,
+                                        id_defecto : parseInt ( re.idRechazo ) ,
+                                        vecZonas : re.vecZonas
                                     }
-                                    vecRechazosTrabajadorXplanilla.push( rechazoZ )
+                                    vecRechazosTrabajadorXplanilla.push ( rechazoZ )
                                 })
                                 var consulta = `insert into trabajador_x_planilla
                                 (calorias , pza_producidas, id_turno , hora_inicio , hora_fin , id_trabajador , id_planilla , estado)
@@ -374,77 +369,77 @@ router.post( '/update', async ( req , res ) => {
                                 declare @id_trabajador_x_planilla int ;
                                 declare @id_rechazos_x_trabajador_y_planilla int ;
                                 set @id_trabajador_x_planilla = ( select max( id ) as idTrabajadorXplanilla from trabajador_x_planilla ) ; `
-                                vecRechazosTrabajadorXplanilla.forEach( rechazo => {
+                                vecRechazosTrabajadorXplanilla.forEach ( rechazo => {
                                     consulta += `insert into rechazos_x_trabajador_y_planilla
                                     (cantidad , tipo , id_defecto , id_trabajador_x_planilla , estado)
                                     values
                                     ( ${ rechazo.cantidad }, ${ rechazo.tipo } , ${ rechazo.id_defecto } , @id_trabajador_x_planilla ,1) ;
                                     set @id_rechazos_x_trabajador_y_planilla = (select max(id) from rechazos_x_trabajador_y_planilla) ; `
-                                    var vecZonasXrechazo = []
-                                    rechazo.vecZonas.forEach( zona => {
+                                    var vecZonasXrechazo = [  ]
+                                    rechazo.vecZonas.forEach ( zona => {
                                         var zoo = {
-                                            cantidad: parseInt( zona.cantidad ),
-                                            letra: zona.letra,
-                                            numero: parseInt( zona.numero )
+                                            cantidad : parseInt ( zona.cantidad ) ,
+                                            letra : zona.letra ,
+                                            numero : parseInt ( zona.numero )
                                         }
                                         vecZonasXrechazo.push( zoo )
                                     })
-                                    vecZonasXrechazo.forEach( zona => {
+                                    vecZonasXrechazo.forEach ( zona => {
                                         consulta += ` insert into zonas_x_rechazo_x_planilla
                                         (cantidad , letra , numero , id_rechazos_x_trabajador_y_planilla , estado )
                                         values
                                         ( ${ zona.cantidad } , '${ zona.letra }' , ${ zona.numero } , @id_rechazos_x_trabajador_y_planilla , 1 ) ; `
                                     })
                                 })
-                                ps_insercionTrabajadoresXPlanilla.query( consulta,(err,result)=>{ if( err ) {  callback( err ) } else { callback() } } )
-                            },( err )=>{
-                                if( err ){
-                                    transaccion.rollback()
-                                    cerrarConexionPOOL()
-                                    res.json( { mensaje:err.message } )
+                                ps_insercionTrabajadoresXPlanilla.query ( consulta , ( err , result ) => { if ( err ) {  callback ( err ) } else { callback (  ) } } )
+                            } , ( err ) => {
+                                if ( err ) {
+                                    transaccion.rollback (  )
+                                    cerrarConexionPOOL (  )
+                                    res.json ( { mensaje:err.message } )
                                 }
-                                else{
-                                    var vecParadasDeMaquina = [ ]
-                                    vecParadasMaquinaSeleccionada.forEach( pm => {
+                                else {
+                                    var vecParadasDeMaquina = [  ]
+                                    vecParadasMaquinaSeleccionada.forEach ( pm => {
                                             var paraMAC = {
                                                 hora_inicio: process.env.NODE_ENV === 'development'? convierteHora( pm.desdeParadaMaquina ) : new Date(`2020-02-15T${pm.desdeParadaMaquina}:00`),
                                                 hora_fin: process.env.NODE_ENV === 'development'? convierteHora( pm.hastaParadaMaquina ) : new Date(`2020-02-15T${pm.hastaParadaMaquina}:00`),
                                                 id_paradas_maquina: parseInt( pm.idParadaMaquina ),
-                                                id_planilla: idPlanillaProduccion.recordset[0].idPlanilla
+                                                id_planilla: idPlanilla
                                             }
-                                            vecParadasDeMaquina.push(paraMAC)
+                                            vecParadasDeMaquina.push ( paraMAC )
                                     })
                                     asincrono.eachSeries ( vecParadasDeMaquina , ( PM , callbackPM ) => {
-                                        const consultaInsercionParadasDeMaquina =  new Request( transaccion )
-                                        consultaInsercionParadasDeMaquina.input( 'hora_incio',mssql.Time,PM.hora_inicio )
-                                        consultaInsercionParadasDeMaquina.input( 'hora_fin',mssql.Time,PM.hora_fin )
-                                        consultaInsercionParadasDeMaquina.input( 'id_paradas_maquina',mssql.Int,PM.id_paradas_maquina )
-                                        consultaInsercionParadasDeMaquina.input( 'id_planilla',mssql.Int,PM.id_planilla )
+                                        const consultaInsercionParadasDeMaquina =  new Request ( transaccion )
+                                        consultaInsercionParadasDeMaquina.input ( 'hora_incio' , mssql.Time , PM.hora_inicio )
+                                        consultaInsercionParadasDeMaquina.input ( 'hora_fin' , mssql.Time , PM.hora_fin )
+                                        consultaInsercionParadasDeMaquina.input ( 'id_paradas_maquina' , mssql.Int , PM.id_paradas_maquina )
+                                        consultaInsercionParadasDeMaquina.input ( 'id_planilla' , mssql.Int , PM.id_planilla )
                                         consultaInsercionParadasDeMaquina.query (
                                             `insert into paradas_maquinas_x_planilla
                                             ( hora_incio , hora_fin , id_paradas_maquina , id_planilla , estado )
                                             values
-                                            ( @hora_incio , @hora_fin , @id_paradas_maquina , @id_planilla , 1 )`,( ER,resultPM ) => {
+                                            ( @hora_incio , @hora_fin , @id_paradas_maquina , @id_planilla , 1 )` , ( ER , resultPM ) => {
                                             if( ER ) { callbackPM( ER ) } else { callbackPM(  ) }
                                         })
-                                    },erroR => {
+                                    } , erroR => {
                                         if ( erroR ) {
-                                            transaccion.rollback()
-                                            cerrarConexionPOOL()
-                                            res.json( { mensaje:erroR.message } )
+                                            transaccion.rollback (  )
+                                            cerrarConexionPOOL (  )
+                                            res.json ( { mensaje : erroR.message } )
                                         }
                                         else {
-                                            transaccion.commit()
-                                            cerrarConexionPOOL()
-                                            res.setHeader( 'Content-Type', 'text/event-stream' )
-                                            res.json( { mensaje:'Transaccion exitosa' } )
+                                            transaccion.commit (  )
+                                            cerrarConexionPOOL (  )
+                                            res.setHeader ( 'Content-Type' , 'text/event-stream' )
+                                            res.json ( { mensaje : 'Actualizacion exitosa' } )
                                         }
                                     })
                                 }
-                            }) // ! FIN FOR EACH
-                        } //! FIN  IIF
+                            })
+                        }
                     }
-                } //! FIN DEL TRY
+                }
                 catch(e){
                     transaccion.rollback()
                     cerrarConexionPOOL()
@@ -458,7 +453,7 @@ router.post( '/update', async ( req , res ) => {
         }
     })
 } )
-router.post( '/', async ( req , res ) => {
+router.post( '/insert', async ( req , res ) => {
     var { fechaProduccion, fechaFundicion, idTurno, HoraInicioProduccion,
         HoraFinProduccion,  idOperacion, idMaquina,  idPieza,  idMolde, idTipoProceso,
         vecOperarios, vecParadasMaquinaSeleccionada
@@ -525,24 +520,24 @@ router.post( '/', async ( req , res ) => {
                             }
                             vecOperariosXplanilla.push( op )
                         })
-                        asincrono.eachSeries(vecOperariosXplanilla,( trabajador, callback ) => {
-                            const  ps_insercionTrabajadoresXPlanilla = new Request( transaccion )
-                            ps_insercionTrabajadoresXPlanilla.input( 'calorias', mssql.Int, trabajador.calorias )
-                            ps_insercionTrabajadoresXPlanilla.input( 'pza_producidas', mssql.Int, trabajador.pza_producidas )
-                            ps_insercionTrabajadoresXPlanilla.input( 'id_turno', mssql.Int, trabajador.id_turno )
-                            ps_insercionTrabajadoresXPlanilla.input( 'hora_inicio', mssql.Time, trabajador.hora_inicio )
-                            ps_insercionTrabajadoresXPlanilla.input( 'hora_fin', mssql.Time, trabajador.hora_fin )
-                            ps_insercionTrabajadoresXPlanilla.input( 'id_trabajador', mssql.Int, trabajador.id_trabajador )
-                            ps_insercionTrabajadoresXPlanilla.input( 'id_planilla', mssql.Int, trabajador.id_planilla )
+                        asincrono.eachSeries ( vecOperariosXplanilla , ( trabajador , callback ) => {
+                            const  ps_insercionTrabajadoresXPlanilla = new Request ( transaccion )
+                            ps_insercionTrabajadoresXPlanilla.input ( 'calorias' , mssql.Int , trabajador.calorias )
+                            ps_insercionTrabajadoresXPlanilla.input ( 'pza_producidas' , mssql.Int , trabajador.pza_producidas )
+                            ps_insercionTrabajadoresXPlanilla.input ( 'id_turno' , mssql.Int , trabajador.id_turno )
+                            ps_insercionTrabajadoresXPlanilla.input ( 'hora_inicio' , mssql.Time , trabajador.hora_inicio )
+                            ps_insercionTrabajadoresXPlanilla.input ( 'hora_fin' , mssql.Time , trabajador.hora_fin )
+                            ps_insercionTrabajadoresXPlanilla.input ( 'id_trabajador', mssql.Int , trabajador.id_trabajador )
+                            ps_insercionTrabajadoresXPlanilla.input ( 'id_planilla' , mssql.Int , trabajador.id_planilla )
                             var vecRechazosTrabajadorXplanilla = [  ]
                             trabajador.vecRechazos.forEach( re => {
                                 var rechazoZ = {
-                                    cantidad: parseInt( re.cantidadRechazo ),
+                                    cantidad: parseInt( re.cantidadRechazo ) ,
                                     tipo: re.tipo ? 1 : 0,
-                                    id_defecto: parseInt( re.idRechazo ),
+                                    id_defecto: parseInt( re.idRechazo ) ,
                                     vecZonas: re.vecZonas
                                 }
-                                vecRechazosTrabajadorXplanilla.push( rechazoZ )
+                                vecRechazosTrabajadorXplanilla.push ( rechazoZ )
                             })
                             var consulta = `insert into trabajador_x_planilla
                             (calorias , pza_producidas, id_turno , hora_inicio , hora_fin , id_trabajador , id_planilla , estado)
@@ -551,20 +546,20 @@ router.post( '/', async ( req , res ) => {
                             declare @id_trabajador_x_planilla int ;
                             declare @id_rechazos_x_trabajador_y_planilla int ;
                             set @id_trabajador_x_planilla = ( select max( id ) as idTrabajadorXplanilla from trabajador_x_planilla ) ; `
-                            vecRechazosTrabajadorXplanilla.forEach( rechazo => {
+                            vecRechazosTrabajadorXplanilla.forEach ( rechazo => {
                                 consulta += `insert into rechazos_x_trabajador_y_planilla
                                 (cantidad , tipo , id_defecto , id_trabajador_x_planilla , estado)
                                 values
                                 ( ${ rechazo.cantidad }, ${ rechazo.tipo } , ${ rechazo.id_defecto } , @id_trabajador_x_planilla ,1) ;
                                 set @id_rechazos_x_trabajador_y_planilla = (select max(id) from rechazos_x_trabajador_y_planilla) ; `
-                                var vecZonasXrechazo = []
+                                var vecZonasXrechazo = [  ]
                                 rechazo.vecZonas.forEach( zona => {
                                     var zoo = {
-                                        cantidad: parseInt( zona.cantidad ),
+                                        cantidad: parseInt ( zona.cantidad ) ,
                                         letra: zona.letra,
-                                        numero: parseInt( zona.numero )
+                                        numero: parseInt ( zona.numero )
                                     }
-                                    vecZonasXrechazo.push( zoo )
+                                    vecZonasXrechazo.push ( zoo )
                                 })
                                 vecZonasXrechazo.forEach( zona => {
                                     consulta += ` insert into zonas_x_rechazo_x_planilla
@@ -574,57 +569,57 @@ router.post( '/', async ( req , res ) => {
                                 })
                             })
                             ps_insercionTrabajadoresXPlanilla.query( consulta,(err,result)=>{ if( err ) {  callback( err ) } else { callback() } } )
-                        },( err )=>{
-                            if( err ){
-                                transaccion.rollback()
-                                cerrarConexionPOOL()
-                                res.json( { mensaje:err.message } )
+                        } , ( err ) => {
+                            if ( err ) {
+                                transaccion.rollback (  )
+                                cerrarConexionPOOL (  )
+                                res.json ( { mensaje : err.message } )
                             }
                             else{
                                 var vecParadasDeMaquina = [ ]
-                                vecParadasMaquinaSeleccionada.forEach( pm => {
+                                vecParadasMaquinaSeleccionada.forEach ( pm => {
                                         var paraMAC = {
                                             hora_inicio: process.env.NODE_ENV === 'development'? convierteHora( pm.desdeParadaMaquina ) : new Date(`2020-02-15T${pm.desdeParadaMaquina}:00`),
                                             hora_fin: process.env.NODE_ENV === 'development'? convierteHora( pm.hastaParadaMaquina ) : new Date(`2020-02-15T${pm.hastaParadaMaquina}:00`),
                                             id_paradas_maquina: parseInt( pm.idParadaMaquina ),
                                             id_planilla: idPlanillaProduccion.recordset[0].idPlanilla
                                         }
-                                        vecParadasDeMaquina.push(paraMAC)
+                                        vecParadasDeMaquina.push ( paraMAC )
                                 })
-                                asincrono.eachSeries(vecParadasDeMaquina,(PM,callbackPM) => {
-                                    const consultaInsercionParadasDeMaquina =  new Request( transaccion )
-                                    consultaInsercionParadasDeMaquina.input( 'hora_incio',mssql.Time,PM.hora_inicio )
-                                    consultaInsercionParadasDeMaquina.input( 'hora_fin',mssql.Time,PM.hora_fin )
-                                    consultaInsercionParadasDeMaquina.input( 'id_paradas_maquina',mssql.Int,PM.id_paradas_maquina )
-                                    consultaInsercionParadasDeMaquina.input( 'id_planilla',mssql.Int,PM.id_planilla )
-                                    consultaInsercionParadasDeMaquina.query(
+                                asincrono.eachSeries ( vecParadasDeMaquina , ( PM , callbackPM ) => {
+                                    const consultaInsercionParadasDeMaquina =  new Request ( transaccion )
+                                    consultaInsercionParadasDeMaquina.input ( 'hora_incio' , mssql.Time , PM.hora_inicio )
+                                    consultaInsercionParadasDeMaquina.input ( 'hora_fin' , mssql.Time , PM.hora_fin )
+                                    consultaInsercionParadasDeMaquina.input ( 'id_paradas_maquina' , mssql.Int,PM.id_paradas_maquina )
+                                    consultaInsercionParadasDeMaquina.input ( 'id_planilla' , mssql.Int , PM.id_planilla )
+                                    consultaInsercionParadasDeMaquina.query (
                                         `insert into paradas_maquinas_x_planilla
                                         ( hora_incio , hora_fin , id_paradas_maquina , id_planilla , estado )
                                         values
                                         ( @hora_incio , @hora_fin , @id_paradas_maquina , @id_planilla , 1 )`,( ER,resultPM ) => {
-                                        if( ER ) { callbackPM( ER ) } else { callbackPM(  ) }
-                                    })
-                                },erroR => {
+                                        if( ER ) { callbackPM ( ER ) } else { callbackPM (  ) }
+                                    } )
+                                } , erroR => {
                                     if ( erroR ) {
-                                        transaccion.rollback()
-                                        cerrarConexionPOOL()
+                                        transaccion.rollback (  )
+                                        cerrarConexionPOOL (  )
                                         res.json( { mensaje:erroR.message } )
                                     }
                                     else {
-                                        transaccion.commit()
-                                        cerrarConexionPOOL()
+                                        transaccion.commit (  )
+                                        cerrarConexionPOOL (  )
                                         res.setHeader( 'Content-Type', 'text/event-stream' )
-                                        res.json( { mensaje:'Transaccion exitosa' } )
+                                        res.json ( { mensaje : 'Insercion exitora' } )
                                     }
                                 })
                             }
                         }) // ! FIN FOR EACH
                     } //! FIN  IIF
                 } //! FIN DEL TRY
-                catch(e){
-                    transaccion.rollback()
-                    cerrarConexionPOOL()
-                    res.json( { mensaje: e.message , mensaje2: 'Error catch FINAL' } )
+                catch ( e ) {
+                    transaccion.rollback (  )
+                    cerrarConexionPOOL (  )
+                    res.json ( { mensaje : e.message , mensaje2 : 'Error catch FINAL' } )
                 }
             }
             metodoTransaccion()
