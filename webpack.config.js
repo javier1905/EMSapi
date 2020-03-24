@@ -3,8 +3,6 @@ const webpackNodeExternals = require('webpack-node-externals')
 const nodemonWebpackPlugin = require( 'nodemon-webpack-plugin' )
 
 module.exports = {
-    // mode : 'development' ,
-    // mode : 'production' ,
     target: 'node' ,
     entry : {
         app : path.resolve( __dirname , 'index.js' )
@@ -13,7 +11,7 @@ module.exports = {
         path : path.resolve( __dirname , 'dist') ,
         filename : 'bundle.js'
     },
-    externals : [ webpackNodeExternals(  ) ] , // avisa a webpack que los librerias nativas no las tranpile 
+    externals : [ webpackNodeExternals(  ) ] , // avisa a webpack que los librerias nativas no las tranpile
     module : {
             rules : [
                 {

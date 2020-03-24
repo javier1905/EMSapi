@@ -237,10 +237,10 @@ router.post( '/update', async ( req , res ) => {
         HoraFinProduccion ,  idOperacion , idMaquina ,  idPieza ,  idMolde , idTipoProceso ,
         vecOperarios , vecParadasMaquinaSeleccionada , idPlanilla
     } = req.body
-    const { abrirConexionPOOL , cerrarConexionPOOL } = require( '../conexiones/sqlServer' )
-    const conexionAbierta = await abrirConexionPOOL( 'consultasa' )
-    const { Transaction } =  require( 'mssql' )
-    const mssql  = require( 'mssql' )
+    const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
+    const conexionAbierta = await abrirConexionPOOL ( 'updatePlanilla' )
+    const { Transaction } =  require ( 'mssql' )
+    const mssql  = require ( 'mssql' )
     const { Request,PreparedStatement } = require ( 'mssql' )
     const transaccion =  await new Transaction ( conexionAbierta )
     const ps_insercionPlanillaProduccion = await new PreparedStatement ( transaccion )
@@ -254,42 +254,42 @@ router.post( '/update', async ( req , res ) => {
             var idPmDelete = ''
             vecParadasMaquinaSeleccionada.forEach ( ( p , ip ) => {
                 if(( vecParadasMaquinaSeleccionada.length -1 )  === ip  ) {
-                    idPmDelete += ` ${p.idParadaMaquinaXplanilla}  `
+                    idPmDelete += ` ${parseInt ( p.idParadaMaquinaXplanilla )}  `
                 }
                 else {
-                    idPmDelete += ` ${p.idParadaMaquinaXplanilla} , `
+                    idPmDelete += ` ${parseInt ( p.idParadaMaquinaXplanilla )} , `
                 }
             } )
             vecOperarios.forEach ( ( o , io ) => {
                 if(( vecOperarios.length -1 )  === io  ) {
-                    idOperariosDelete += ` ${o.idRechazoXtrabajadorYplanilla}  `
+                    idOperariosDelete += ` ${parseInt( o.idRechazoXtrabajadorYplanilla )}  `
                 }
                 else {
-                    idOperariosDelete += ` ${o.idRechazoXtrabajadorYplanilla} , `
+                    idOperariosDelete += ` ${parseInt( o.idRechazoXtrabajadorYplanilla )} , `
                 }
                 o.vecRechazo.forEach ( ( r , ir ) => {
                     if(( o.vecRechazo.length -1 )  === ir  ) {
-                        idRechazosDelete += ` ${r.idRechazoXtrabajadorYplanilla}  `
+                        idRechazosDelete += ` ${parseInt ( r.idRechazoXtrabajadorYplanilla )}  `
                     }
                     else {
-                        idRechazosDelete += ` ${r.idRechazoXtrabajadorYplanilla} , `
+                        idRechazosDelete += ` ${parseInt ( r.idRechazoXtrabajadorYplanilla )} , `
                     }
                     r.vecZonas.forEach ( ( z , iz ) => {
                         if(( r.vecZonas.length -1 )  === iz  ) {
-                            idZonasDelete += ` ${z.idZona}  `
+                            idZonasDelete += ` ${parseInt ( z.idZona ) }  `
                         }
                         else {
-                            idZonasDelete += ` ${z.idZona} , `
+                            idZonasDelete += ` ${parseInt ( z.idZona )} , `
                         }
                     })
                 } )
             } )
             const metodoTransaccion =  async (  ) => {
                 try{
-                    const resultDelete = await deleteZonasRechazosOperariosPm.query ( ` delete zonas_x_rechazo_x_planilla where id in ( ${ idZonasDelete } ) ;
-                    delete rechazos_x_trabajador_y_planilla where id in ( ${ idRechazosDelete } ) ;
-                    delete trabajador_x_planilla where id in ( ${ idOperariosDelete } ) ;
-                    delete paradas_maquinas_x_planilla where id in ( ${ idPmDelete } ) ; ` )
+                    const resultDelete = await deleteZonasRechazosOperariosPm.query ( ` delete zonas_x_rechazo_x_planilla where id in ( ${ idZonasDelete === '' ? null : idZonasDelete} ) ;
+                    delete rechazos_x_trabajador_y_planilla where id in ( ${ idRechazosDelete === '' ? null : idRechazosDelete } ) ;
+                    delete trabajador_x_planilla where id in ( ${ idOperariosDelete === '' ? null : idOperariosDelete } ) ;
+                    delete paradas_maquinas_x_planilla where id in ( ${ idPmDelete === '' ? null : idPmDelete } ) ; ` )
                     if ( resultDelete.recordset ) {
                         ps_insercionPlanillaProduccion.input ( 'fe_produccion' , mssql.Date )
                         ps_insercionPlanillaProduccion.input ( 'fe_fundicion' , mssql.Date )
