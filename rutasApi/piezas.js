@@ -7,7 +7,12 @@ router.get('/',async (req,res)=>{
     const {Request} = new require('mssql')
     const consulta = new Request()
     consulta.query(
-        'select id as idPieza, nombre as nombrePieza from piezas where estado = 1',
+        `select p.id as idPieza, p.nombre as nombrePieza , p.id_cliente as idCliente , c.nombre as nombreCliente ,
+        p.id_tipos_material as idTipoMaterial , tm.nombre as nombreTipoMaterial
+        from piezas p
+        join clientes c on p.id_cliente = c.id
+        join tipos_material tm on p.id_tipos_material = tm.id
+        where p.estado = 1`,
         (err,dato)=>{
             if(!err){res.json(dato.recordset); cerrarConexion() } else { res.json({mensaje:err.message}); cerrarConexion() }
         }
