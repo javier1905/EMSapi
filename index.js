@@ -36,6 +36,7 @@ servidor.use('/api/trabajadores',require('./rutasApi/trabajadores'))
 servidor.use('/api/planillasProduccion',require('./rutasApi/planillasProduccion'))
 servidor.use('/api/tiposProceso',require('./rutasApi/tiposProceso'))
 servidor.use('/api/clientes', require( './rutasApi/clientes' ) )
+servidor.use ('/api/tiposMaterial', require ( './rutasApi/tiposMaterial' ) )
 
 //Settings
 servidor.set('port',process.env.PORT || 5000)

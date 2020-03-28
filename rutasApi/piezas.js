@@ -30,4 +30,79 @@ router.get('/xmaquina/:idMaquina', async (req,res)=>{ // ! LISTADO DE PIEZAS SEG
         }
     )
 })
+router.post ( '/insert' , async ( req, res) => {
+    const { nombrePieza , idCliente , idTipoMaterial } = req.body
+    try {
+        const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
+        const conexion = await abrirConexionPOOL ( 'insertPieza' )
+        const { Request , Int , VarChar } = require ( 'mssql' )
+        const myRequest = new Request ( conexion )
+        myRequest.input ( 'nombrePieza' , VarChar , nombrePieza )
+        myRequest.input ( 'idCliente' , Int , idCliente )
+        myRequest.input ( 'idTipoMaterial' , Int , idTipoMaterial )
+        const query = `insert into piezas ( nombre , id_cliente , id_tipos_material , estado )
+        values ( @nombrePieza , @idCliente , @idTipoMaterial , 1 )`
+        const result = await myRequest.query ( query )
+        if ( result ) {
+            cerrarConexionPOOL (  )
+            res.json ( { mensaje : 'Pieza insertada correctamente' } )
+        }
+    }
+    catch ( e ) {
+        cerrarConexionPOOL (  )
+        res.json ( { mensaje : e.message } )
+    }
+} )
+router.put ( '/update' , async ( req, res) => {
+    const { idPieza , nombrePieza , idCliente , idTipoMaterial } = req.body
+    try {
+        const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
+        const conexion = await abrirConexionPOOL ( 'updatePieza' )
+        const { Request , Int , VarChar } = require ( 'mssql' )
+        const myRequest = new Request ( conexion )
+        myRequest.input ( 'idPieza' , Int , idPieza )
+        myRequest.input ( 'nombrePieza' , VarChar , nombrePieza )
+        myRequest.input ( 'idCliente' , Int , idCliente )
+        myRequest.input ( 'idTipoMaterial' , Int , idTipoMaterial )
+        const query = `update piezas
+        set
+        nombre = @nombrePieza ,
+        id_cliente = @idCliente ,
+        id_tipos_material = @idTipoMaterial
+        where id = @idPieza`
+        const result = await myRequest.query ( query )
+        if ( result ) {
+            cerrarConexionPOOL (  )
+            res.json ( { mensaje : 'Pieza actualizada correctamente' } )
+        }
+    }
+    catch ( e ) {
+        cerrarConexionPOOL (  )
+        res.json ( { mensaje : e.message } )
+    }
+} )
+router.put ( '/delete' , async ( req, res) => {
+    const { idPieza } = req.body
+    try {
+        const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
+        const conexion = await abrirConexionPOOL ( 'deletePieza' )
+        const { Request , Int  } = require ( 'mssql' )
+        const myRequest = new Request ( conexion )
+        myRequest.input ( 'idPieza' , Int , idPieza )
+        const query = `update piezas
+        set
+        estado = 0
+        where id = @idPieza`
+        const result = await myRequest.query ( query )
+        if ( result ) {
+            cerrarConexionPOOL (  )
+            res.json ( { mensaje : 'Pieza eliminada correctamente' } )
+        }
+    }
+    catch ( e ) {
+        cerrarConexionPOOL (  )
+        res.json ( { mensaje : e.message } )
+    }
+} )
+
 module.exports = router
