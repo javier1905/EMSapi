@@ -80,7 +80,7 @@ router.get ('/list' , async ( req , res ) => {
                         p.vecPiezasXhora = [ ]
                         vecPiezasXhora.forEach ( ( pzXhs , index ) => {
                             if ( parseInt ( p.idProceso ) === parseInt ( pzXhs.idProceso ) ) {
-                                vecProcesos.vecPiezasXhora.push ( pzXhs )
+                                p.vecPiezasXhora.push ( pzXhs )
                             }
                         } )
                     } )
