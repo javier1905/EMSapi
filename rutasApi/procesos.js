@@ -67,15 +67,17 @@ router.get ('/list' , async ( req , res ) => {
                 }
                 if (idProcesos === '' ) { idProcesos = null }
                 else { idProcesos = idProcesos.trim (  ).substring ( 0 ,  idProcesos.length -2 ) }
+                console.log ( idProcesos )
                 const queryPiezaXhs = `select pxh.id as idPiezasXhs , pxh.cantidad as cantidadPiezasXhs , pxh.fe_desde as desdePiezasXhs ,
                 pxh.fe_hasta as hastaPiezasXhs , pxh.id_proceso as idProceso
                 from piezas_x_hora pxh
-                where pxh.id in (${idProcesos})`
+                where pxh.id_proceso in (${idProcesos})`
                 const resulrpzXhs = await myRequestPiezaXhs.query ( queryPiezaXhs )
                 var vecPiezasXhora = [  ]
                 if ( resulrpzXhs ) {
                     console.log ( vecPiezasXhora )
                     vecPiezasXhora = resulrpzXhs.recordset
+                    console.log ( resulrpzXhs.recordset )
                     vecProcesos.forEach ( ( p , i ) => {
                         p.vecPiezasXhora = [ ]
                         vecPiezasXhora.forEach ( ( pzXhs , index ) => {
