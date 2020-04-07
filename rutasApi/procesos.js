@@ -166,5 +166,96 @@ router.post ( '/insert' , async ( req , res ) => {
         res.json ( { mensaje : e.message } )
     }
 } )
+router.put ( '/update' , async ( req , res ) => {
+    const { idProceso , descripcionProceso , idPieza , idMaquina , idTiposProceso , vecPiezasXhora } = req.body
+    const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
+    try {
+        const conexion = await abrirConexionPOOL ( 'insertProceso' )
+        const  { Transaction , Request ,Date , Int , VarChar } = require ( 'mssql' )
+        const myTransaction = new Transaction ( conexion )
+        const myRequestProceso = new Request ( myTransaction )
+        const asincrono = require ( 'async' )
+        myTransaction.begin ( async ( errorTrasactions ) => {
+            if ( errorTrasactions ) {
+                myTransaction.rollback (  )
+                cerrarConexionPOOL (  )
+                res.json ( { mensaje : errorTrasactions.message } )
+            }
+            myRequestProceso.input ( 'descripcionProceso' , VarChar ,  descripcionProceso )
+            myRequestProceso.input ( 'idPieza' , Int ,  idPieza )
+            myRequestProceso.input ( 'idMaquina' , Int ,  idMaquina )
+            myRequestProceso.input ( 'idTiposProceso' , Int ,  idTiposProceso )
+            myRequestProceso.input ( 'idProceso' , Int ,  idProceso )
+            const queryProcesos = `update procesos
+            set
+            descripcion = @descripcionProceso ,
+            id_pieza = @idPieza ,
+            id_maquina = @idMaquina ,
+            id_tipos_proceso = @idTiposProceso
+            where id = @idProceso ; delete piezas_x_hora where id_proceso = @idProceso`
+            const responseProcesos = await myRequestProceso.query ( queryProcesos )
+            if ( responseProcesos ) {
+                if ( Array.isArray ( vecPiezasXhora ) && vecPiezasXhora.length > 0 ) {
+                    asincrono.eachSeries ( vecPiezasXhora , ( piezaXhs , callback ) => {
+                        const myRequestPieXhs = new Request ( myTransaction )
+                        myRequestPieXhs.input ( 'cantidadPiezasXhs' , Int , piezaXhs.cantidadPiezasXhs )
+                        myRequestPieXhs.input ( 'desdePiezasXhs' , Date , piezaXhs.desdePiezasXhs )
+                        myRequestPieXhs.input ( 'hastaPiezasXhs' , Date , piezaXhs.hastaPiezasXhs )
+                        myRequestPieXhs.input ( 'idProceso' , Int , parseInt ( idProceso ) )
+                        const queryPiexhs = `insert into piezas_x_hora ( cantidad , fe_desde , fe_hasta , id_proceso , estado )
+                        values ( @cantidadPiezasXhs , @desdePiezasXhs , @hastaPiezasXhs , @idProceso , 1 )`
+                        myRequestPieXhs.query ( queryPiexhs , ( error , result ) => {
+                            if ( error ) {
+                                callback ( error )
+                            }
+                            else {
+                                callback (  )
+                            }
+                        } )
+                    } , ( errorCalback ) => {
+                        if ( errorCalback ) {
+                            myTransaction.rollback (  )
+                            cerrarConexionPOOL ( )
+                            res.json ( { mensaje : errorCalback.message } )
+                        }
+                        else {
+                            myTransaction.commit (  )
+                            cerrarConexionPOOL (  )
+                            res.json ( { mensaje : 'Proceso actualizado correctamente' } )
+                        }
+                    } )
+                }
+            }
+        } )
+    }
+    catch ( e ) {
+        myTransaction.rollback (  )
+        cerrarConexionPOOL (  )
+        res.json ( { mensaje : e.message } )
+    }
+} )
+router.put ( '/delete' , async ( req , res ) => {
+    const { idProceso } = req.body
+    const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
+    try {
+        const conexion = await abrirConexionPOOL ( 'deleteProceso' )
+        const  {  Request  , Int  } = require ( 'mssql' )
+        const myRequestProceso = new Request ( conexion )
+        myRequestProceso.input ( 'idProceso' , Int ,  idProceso )
+        const queryProcesos = `update procesos
+        set
+        estado = 0
+        where id = @idProceso `
+        const responseProcesos = await myRequestProceso.query ( queryProcesos )
+        if ( responseProcesos ) {
+            cerrarConexionPOOL (  )
+            res.json ( { mensaje : 'Procesos eliminado correctamente' } )
+        }
+    }
+    catch ( e ) {
+        cerrarConexionPOOL (  )
+        res.json ( { mensaje : e.message } )
+    }
+} )
 
 module.exports = router
