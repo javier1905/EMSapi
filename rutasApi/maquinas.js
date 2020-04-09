@@ -46,7 +46,7 @@ router.post ( '/insert', async ( req , res ) => {
     myRequest.input ( 'descripcionMaquina' , VarChar , descripcionMaquina )
     myRequest.input ( 'idTipoMaquina' , Int , idTipoMaquina )
     myRequest.input ( 'idPlanta' , Int , idPlanta )
-    const query = `insert into maquinas ( nombre , descripcion , id_tipo_maquina , id_planta , estado )
+    const query = `insert into maquinas ( nombre , descripcion , id_tipos_maquina , id_planta , estado )
     values
     ( @nombreMaquina , @descripcionMaquina , @idTipoMaquina , @idPlanta , 1 )`
     const result = await myRequest.query ( query )
