@@ -23,9 +23,6 @@ router.get (  '/list' , async ( req , res ) => {
         res.json ( { mensaje : e.message } )
     }
 } )
-
-
-
 router.post ( '/insert', async ( req , res ) => {
     const { nombreTipoMaquina  , idOperacion } = req.body
     const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
