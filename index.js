@@ -6,7 +6,7 @@ if(process.env.NODE_ENV === 'development'){
     require('colors')
     morgan = require('morgan')
 }
-console.log(process.env.NODE_ENV)
+// console.log(process.env.NODE_ENV)
 
 const servidor = express()
 servidor.use(cors())

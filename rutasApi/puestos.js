@@ -3,8 +3,8 @@ const { Router } = require ( 'express' )
 const router = Router (  )
 
 router.get ( '/list' , async ( req , res ) => {
+    const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
     try {
-        const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
         const conexion = await abrirConexionPOOL ( 'listarPuestos' )
         const { Request } = require ( 'mssql' )
         const myRequest = new Request ( conexion )
@@ -21,8 +21,8 @@ router.get ( '/list' , async ( req , res ) => {
 } )
 router.post ( '/insert' , async ( req , res ) =>{
     const { nombrePuesto } = req.body
+    const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
     try {
-        const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
         const conexion = await abrirConexionPOOL ( 'insertPuesto' )
         const { Request , VarChar } = require ('mssql' )
         const myRequest = new Request ( conexion )
@@ -44,8 +44,8 @@ router.post ( '/insert' , async ( req , res ) =>{
 
 router.put ( '/update' , async ( req , res ) =>{
     const { idPuesto , nombrePuesto } = req.body
+    const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
     try {
-        const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
         const conexion = await abrirConexionPOOL ( 'updatePuesto' )
         const { Request , Int , Date , VarChar } = require ('mssql' )
         const myRequest = new Request ( conexion )
@@ -68,8 +68,8 @@ router.put ( '/update' , async ( req , res ) =>{
 } )
 router.put ( '/delete' , async ( req , res ) =>{
     const { idPuesto } = req.body
+    const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
     try {
-        const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
         const conexion = await abrirConexionPOOL ( 'deletePuesto' )
         const { Request , Int } = require ('mssql' )
         const myRequest = new Request ( conexion )

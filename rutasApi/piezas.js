@@ -37,8 +37,8 @@ router.get('/xmaquina/:idMaquina', async (req,res)=>{ // ! LISTADO DE PIEZAS SEG
 })
 router.post ( '/insert' , async ( req, res) => {
     const { nombrePieza , idCliente , idTipoMaterial } = req.body
+    const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
     try {
-        const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
         const conexion = await abrirConexionPOOL ( 'insertPieza' )
         const { Request , Int , VarChar } = require ( 'mssql' )
         const myRequest = new Request ( conexion )
@@ -60,8 +60,8 @@ router.post ( '/insert' , async ( req, res) => {
 } )
 router.put ( '/update' , async ( req, res) => {
     const { idPieza , nombrePieza , idCliente , idTipoMaterial } = req.body
+    const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
     try {
-        const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
         const conexion = await abrirConexionPOOL ( 'updatePieza' )
         const { Request , Int , VarChar } = require ( 'mssql' )
         const myRequest = new Request ( conexion )
@@ -88,8 +88,8 @@ router.put ( '/update' , async ( req, res) => {
 } )
 router.put ( '/delete' , async ( req, res) => {
     const { idPieza } = req.body
+    const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
     try {
-        const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
         const conexion = await abrirConexionPOOL ( 'deletePieza' )
         const { Request , Int  } = require ( 'mssql' )
         const myRequest = new Request ( conexion )

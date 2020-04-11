@@ -3,8 +3,8 @@ const { Router } = require ( 'express' )
 const router = Router (  )
 
 router.get ( '/' , async ( req , res ) => {
+    const { abrirConexionPOOL , cerrarConexionPOOL } = require ('../conexiones/sqlServer')
     try {
-        const { abrirConexionPOOL , cerrarConexionPOOL } = require ('../conexiones/sqlServer')
         const conexion = await abrirConexionPOOL ( 'listaAreas' )
         const { Request } = new require ( 'mssql' )
         const myRequires = new Request ( conexion )

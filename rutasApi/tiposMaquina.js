@@ -2,8 +2,8 @@ const { Router } = require ( 'express' )
 const router = Router (  )
 
 router.get (  '/list' , async ( req , res ) => {
+    const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
     try {
-        const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
         const conexion = await abrirConexionPOOL ( 'listaTiposMaquina' )
         const { Request } = require ( 'mssql' )
         const myRequest = new Request ( conexion )

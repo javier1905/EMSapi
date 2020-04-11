@@ -1,6 +1,6 @@
 const {Router} = require('express')
 
-const router = Router()
+const router = Router (  )
 
 router.get ( '/' , async (req,res) => {
     const {abrirConexion,cerrarConexion} = require('../conexiones/sqlServer')
@@ -9,7 +9,7 @@ router.get ( '/' , async (req,res) => {
     var consulta = new Request()
     consulta.query(
         `select t.id as idTrabajador, t.nombre as nombreTrabajador, t.apellido as apellidoTrabajador,
-        t.f_nacimiento as fechaNacimientoTrabajador, t.f_ingreso as fechaIngresoTrabajador,
+        t.f_nacimiento as nacimientoTrabajador, t.f_ingreso as ingresoTrabajador,
         t.id_puesto as idPuesto, p.nombre as nombrePuesto
         from trabajadores t
         join puestos p on t.id_puesto=p.id
@@ -20,19 +20,20 @@ router.get ( '/' , async (req,res) => {
         }
     )
 } )
-router.post ( '/insert' , async ( req , res ) =>{
+router.post ( '/insert' , async ( req , res ) => {
     const { nombreTrabajador , apellidoTrabajador , nacimientoTrabajador , ingresoTrabajador , idPuesto } = req.body
+    const Moment = require  ( 'moment' )
+    const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
     try {
-        const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
         const conexion = await abrirConexionPOOL ( 'insertTrabajador' )
         const { Request , Int , Date , VarChar } = require ('mssql' )
         const myRequest = new Request ( conexion )
         myRequest.input ( 'nombreTrabajador' , VarChar , nombreTrabajador )
         myRequest.input ( 'apellidoTrabajador' , VarChar , apellidoTrabajador )
-        myRequest.input ( 'nacimientoTrabajador' , Date , nacimientoTrabajador )
-        myRequest.input ( 'ingresoTrabajador' , Date , ingresoTrabajador )
+        myRequest.input ( 'nacimientoTrabajador' , Date , new Moment ( nacimientoTrabajador ) )
+        myRequest.input ( 'ingresoTrabajador' , Date , new Moment ( ingresoTrabajador ) )
         myRequest.input ( 'idPuesto' , Int , idPuesto )
-        const query = `insert into trabajadores ( nombre , apellido , f_nacimiento , f_ingreso , id_puesto , estado )
+        const query = `set dateformat dmy ; insert into trabajadores ( nombre , apellido , f_nacimiento , f_ingreso , id_puesto , estado )
         values
         ( @nombreTrabajador , @apellidoTrabajador , @nacimientoTrabajador , @ingresoTrabajador , @idPuesto , 1 )`
         const result = await myRequest.query ( query )
@@ -47,17 +48,17 @@ router.post ( '/insert' , async ( req , res ) =>{
     }
 } )
 
-router.put ( '/update' , async ( req , res ) =>{
+router.put ( '/update' , async ( req , res ) => {
     const { idTrabajador , nombreTrabajador , apellidoTrabajador , nacimientoTrabajador , ingresoTrabajador , idPuesto } = req.body
+    const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
     try {
-        const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
         const conexion = await abrirConexionPOOL ( 'updateTrabajador' )
         const { Request , Int , Date , VarChar } = require ('mssql' )
         const myRequest = new Request ( conexion )
         myRequest.input ( 'nombreTrabajador' , VarChar , nombreTrabajador )
         myRequest.input ( 'apellidoTrabajador' , VarChar , apellidoTrabajador )
-        myRequest.input ( 'nacimientoTrabajador' , Date , nacimientoTrabajador )
-        myRequest.input ( 'ingresoTrabajador' , Date , ingresoTrabajador )
+        myRequest.input ( 'nacimientoTrabajador' , Date , new Moment ( nacimientoTrabajador ) )
+        myRequest.input ( 'ingresoTrabajador' , Date , new Moment ( ingresoTrabajador ) )
         myRequest.input ( 'idPuesto' , Int , idPuesto )
         myRequest.input ( 'idTrabajador' , Int , idTrabajador )
         const query = `update trabajadores
@@ -81,8 +82,8 @@ router.put ( '/update' , async ( req , res ) =>{
 } )
 router.put ( '/delete' , async ( req , res ) =>{
     const { idTrabajador } = req.body
+    const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
     try {
-        const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
         const conexion = await abrirConexionPOOL ( 'deleteTrabajador' )
         const { Request , Int } = require ('mssql' )
         const myRequest = new Request ( conexion )
