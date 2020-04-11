@@ -10,7 +10,7 @@ router.get ( '/' , async (req,res) => {
     consulta.query(
         `select t.id as idTrabajador, t.nombre as nombreTrabajador, t.apellido as apellidoTrabajador,
         t.f_nacimiento as fechaNacimientoTrabajador, t.f_ingreso as fechaIngresoTrabajador,
-        t.id_puesto as idPuestoTrabajador, p.nombre as nombrePuesto
+        t.id_puesto as idPuesto, p.nombre as nombrePuesto
         from trabajadores t
         join puestos p on t.id_puesto=p.id
         where t.estado = 1`,
