@@ -30,8 +30,8 @@ router.post ( '/insert' , async ( req , res ) => {
         const myRequest = new Request ( conexion )
         myRequest.input ( 'nombreTrabajador' , VarChar , nombreTrabajador )
         myRequest.input ( 'apellidoTrabajador' , VarChar , apellidoTrabajador )
-        myRequest.input ( 'nacimientoTrabajador' , Date , new Moment ( nacimientoTrabajador ) )
-        myRequest.input ( 'ingresoTrabajador' , Date , new Moment ( ingresoTrabajador ) )
+        myRequest.input ( 'nacimientoTrabajador' , Date ,  nacimientoTrabajador  )
+        myRequest.input ( 'ingresoTrabajador' , Date ,  ingresoTrabajador  )
         myRequest.input ( 'idPuesto' , Int , idPuesto )
         const query = `set dateformat dmy ; insert into trabajadores ( nombre , apellido , f_nacimiento , f_ingreso , id_puesto , estado )
         values
@@ -57,8 +57,8 @@ router.put ( '/update' , async ( req , res ) => {
         const myRequest = new Request ( conexion )
         myRequest.input ( 'nombreTrabajador' , VarChar , nombreTrabajador )
         myRequest.input ( 'apellidoTrabajador' , VarChar , apellidoTrabajador )
-        myRequest.input ( 'nacimientoTrabajador' , Date , new Moment ( nacimientoTrabajador ) )
-        myRequest.input ( 'ingresoTrabajador' , Date , new Moment ( ingresoTrabajador ) )
+        myRequest.input ( 'nacimientoTrabajador' , Date , nacimientoTrabajador )
+        myRequest.input ( 'ingresoTrabajador' , Date ,  ingresoTrabajador )
         myRequest.input ( 'idPuesto' , Int , idPuesto )
         myRequest.input ( 'idTrabajador' , Int , idTrabajador )
         const query = `update trabajadores
