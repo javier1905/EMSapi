@@ -14,7 +14,7 @@ router.get ( '/',async ( req , res ) => {
         }
     )
 } )
-router.post ( 'insert' , async ( req , res ) => {
+router.post ( '/insert' , async ( req , res ) => {
     const { nombreOperacion } = req.body
     const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
     try {
