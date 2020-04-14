@@ -33,9 +33,10 @@ router.post( '/listar', async ( req , res ) => {
     } = req.body
     const { abrirConexionPOOL , cerrarConexionPOOL } = require( '../conexiones/sqlServer' )
     const conexionAbierta = await abrirConexionPOOL(  )
-    const { Transaction , Date , Int } = require( 'mssql' )
+    const { Transaction , Int } = require( 'mssql' )
     const transaccion = new Transaction(conexionAbierta )
     const { Request } = require( 'mssql' )
+    const mssql = require( 'mssql' )
     transaccion.begin( async e =>{
         if( e ) {  res.json( { mensaje: e.message } )  }
         const sqlConsulta = `
@@ -59,15 +60,15 @@ router.post( '/listar', async ( req , res ) => {
         and (  @idTipoProceso  is null  or p.id_tipos_proceso =  @idTipoProceso  )
         and (  @idOperacion  is null  or tm.id_operacion =   @idOperacion  ) `
         const consultaPlanilla = new Request( transaccion )
-        consultaPlanilla.input( 'fechaDesdeFundicion' , Date , fechaDesdeFundicion )
-        consultaPlanilla.input( 'fechaHastaFundicon' , Date , fechaHastaFundicon )
-        consultaPlanilla.input( 'fechaDesdeProduccion' , Date , fechaDesdeProduccion )
-        consultaPlanilla.input( 'fechaHastaProduccion' , Date , fechaHastaProduccion)
-        consultaPlanilla.input( 'idMaquina' , Int , idMaquina === '' ? null : idMaquina )
-        consultaPlanilla.input( 'idPieza' , Int , idPieza === '' ? null : idPieza )
-        consultaPlanilla.input( 'idMolde' , Int , idMolde === '' ? null : idMolde )
-        consultaPlanilla.input( 'idTipoProceso' , Int , idTipoProceso === '' ? null : idTipoProceso )
-        consultaPlanilla.input( 'idOperacion' , Int , idOperacion === '' ? null : idOperacion )
+        consultaPlanilla.input( 'fechaDesdeFundicion' , mssql.Date , fechaDesdeFundicion )
+        consultaPlanilla.input( 'fechaHastaFundicon' , mssql.Date , fechaHastaFundicon )
+        consultaPlanilla.input( 'fechaDesdeProduccion' , mssql.Date , fechaDesdeProduccion )
+        consultaPlanilla.input( 'fechaHastaProduccion' , mssql.Date , fechaHastaProduccion)
+        consultaPlanilla.input( 'idMaquina' , Int , idMaquina === '' ? null : parseInt ( idMaquina ) )
+        consultaPlanilla.input( 'idPieza' , Int , idPieza === '' ? null : parseInt ( idPieza ) )
+        consultaPlanilla.input( 'idMolde' , Int , idMolde === '' ? null : parseInt (  idMolde ) )
+        consultaPlanilla.input( 'idTipoProceso' , Int , idTipoProceso === '' ? null : parseInt ( idTipoProceso ) )
+        consultaPlanilla.input( 'idOperacion' , Int , idOperacion === '' ? null : parseInt (  idOperacion ) )
         const consultaOperariosXplanilla = new Request( transaccion )
         const consultaRechazos = new Request( transaccion )
         const consultaZonas = new Request( transaccion )
