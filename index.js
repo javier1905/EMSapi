@@ -41,6 +41,7 @@ servidor.use ('/api/areas', require ( './rutasApi/areas' ) )
 servidor.use ( '/api/tiposMaquina' , require ( './rutasApi/tiposMaquina' ))
 servidor.use ( '/api/plantas' , require ( './rutasApi/plantas' ))
 servidor.use ( '/api/puestos' , require ( './rutasApi/puestos' ) )
+servidor.use ( '/api/oee' , require ( './rutasApi/oee' ) )
 
 //Settings
 servidor.set('port',process.env.PORT || 5000)
