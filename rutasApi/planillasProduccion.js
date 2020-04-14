@@ -38,7 +38,7 @@ router.post( '/listar', async ( req , res ) => {
     const { Request } = require( 'mssql' )
     transaccion.begin( async e =>{
         if( e ) {  res.json( { mensaje: e.message } )  }
-        const sqlConsulta = ` set dateformat dmy ;
+        const sqlConsulta = `
         select pl.id as idPlanilla, pl.fe_carga as fechaCarga, pl.fe_produccion as fechaProduccion, pl.fe_fundicion as fechaFundicion,
         pl.hora_inicio as horaInicio , pl.hora_fin as horaFin, tm.id_operacion as idOperacion, maq.id as idMaquina ,maq.nombre as nombreMaquina , pie.id as idPieza,
         pie.nombre as nombrePieza , mol.id as idMolde,  mol.nombre as nombreMolde , tp.id as idTipoProceso, tp.nombre as tipoProceso
