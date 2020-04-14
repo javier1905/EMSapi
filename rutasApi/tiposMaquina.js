@@ -54,7 +54,6 @@ router.put ( '/update', async ( req , res ) => {
         const conexion = await abrirConexionPOOL ( 'updateTipoMaquina' )
         const myRequest = new Request ( conexion )
         myRequest.input ( 'nombreTipoMaquina' , VarChar , nombreTipoMaquina )
-        myRequest.input ( 'descripcionMaquina' , VarChar , descripcionMaquina )
         myRequest.input ( 'idOperacion' , Int , idOperacion )
         myRequest.input ( 'idTipoMaquina' , Int , idTipoMaquina )
         const query = `update tipos_maquina

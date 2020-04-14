@@ -33,7 +33,7 @@ router.post( '/listar', async ( req , res ) => {
     } = req.body
     const { abrirConexionPOOL , cerrarConexionPOOL } = require( '../conexiones/sqlServer' )
     const conexionAbierta = await abrirConexionPOOL(  )
-    const { Transaction } = require( 'mssql' )
+    const { Transaction , Date , Int } = require( 'mssql' )
     const transaccion = new Transaction(conexionAbierta )
     const { Request } = require( 'mssql' )
     transaccion.begin( async e =>{
@@ -51,14 +51,23 @@ router.post( '/listar', async ( req , res ) => {
         join tipos_proceso tp on p.id_tipos_proceso = tp.id
         join tipos_maquina tm on maq.id_tipos_maquina = tm.id
         where pl.estado = 1
-        and  pl.fe_fundicion between '${fechaDesdeFundicion}' and '${fechaHastaFundicon}'
-        and  pl.fe_produccion between '${fechaDesdeProduccion}' and '${fechaHastaProduccion}'
-        and ( ${ idMaquina } is null  or p.id_maquina =  ${ idMaquina } )
-        and ( ${ idPieza } is null  or p.id_pieza =  ${ idPieza } )
-        and ( ${ idMolde } is null  or pl.id_molde =  ${ idMolde } )
-        and ( ${ idTipoProceso } is null  or p.id_tipos_proceso =  ${ idTipoProceso } )
-        and ( ${ idOperacion } is null  or tm.id_operacion =  ${ idOperacion } ) `
+        and  pl.fe_fundicion between @fechaDesdeFundicion and  @fechaHastaFundicon
+        and  pl.fe_produccion between  @fechaDesdeProduccion and  @fechaHastaProduccion
+        and (  @idMaquina  is null  or p.id_maquina =  @idMaquina  )
+        and (  @idPieza  is null  or p.id_pieza =  @idPieza  )
+        and (  @idMolde  is null  or pl.id_molde =  @idMolde  )
+        and (  @idTipoProceso  is null  or p.id_tipos_proceso =  @idTipoProceso  )
+        and (  @idOperacion  is null  or tm.id_operacion =   @idOperacion  ) `
         const consultaPlanilla = new Request( transaccion )
+        consultaPlanilla.input( 'fechaDesdeFundicion' , Date , fechaDesdeFundicion)
+        consultaPlanilla.input( 'fechaHastaFundicon' , Date , fechaHastaFundicon)
+        consultaPlanilla.input( 'fechaDesdeProduccion' , Date , fechaDesdeProduccion)
+        consultaPlanilla.input( 'fechaHastaProduccion' , Date , fechaHastaProduccion)
+        consultaPlanilla.input( 'idMaquina' , Int , idMaquina)
+        consultaPlanilla.input( 'idPieza' , Int , idPieza)
+        consultaPlanilla.input( 'idMolde' , Int , idMolde)
+        consultaPlanilla.input( 'idTipoProceso' , Int , idTipoProceso)
+        consultaPlanilla.input( 'idOperacion' , Int , idOperacion)
         const consultaOperariosXplanilla = new Request( transaccion )
         const consultaRechazos = new Request( transaccion )
         const consultaZonas = new Request( transaccion )

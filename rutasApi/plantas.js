@@ -67,7 +67,7 @@ router.put ( '/update', async ( req , res ) => {
         barrio = @barrioPlanta ,
         cp = @codigoPostalPlanta ,
         calle = @callePlanta ,
-        altura_calle = alturaCallePlanta
+        altura_calle = @alturaCallePlanta
         where id = @idPlanta`
         const result = await myRequest.query ( query )
         if ( result ) {
