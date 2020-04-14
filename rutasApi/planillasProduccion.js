@@ -59,20 +59,20 @@ router.post( '/listar', async ( req , res ) => {
         and (  @idTipoProceso  is null  or p.id_tipos_proceso =  @idTipoProceso  )
         and (  @idOperacion  is null  or tm.id_operacion =   @idOperacion  ) `
         const consultaPlanilla = new Request( transaccion )
-        consultaPlanilla.input( 'fechaDesdeFundicion' , Date , fechaDesdeFundicion)
-        consultaPlanilla.input( 'fechaHastaFundicon' , Date , fechaHastaFundicon)
-        consultaPlanilla.input( 'fechaDesdeProduccion' , Date , fechaDesdeProduccion)
+        consultaPlanilla.input( 'fechaDesdeFundicion' , Date , fechaDesdeFundicion )
+        consultaPlanilla.input( 'fechaHastaFundicon' , Date , fechaHastaFundicon )
+        consultaPlanilla.input( 'fechaDesdeProduccion' , Date , fechaDesdeProduccion )
         consultaPlanilla.input( 'fechaHastaProduccion' , Date , fechaHastaProduccion)
-        consultaPlanilla.input( 'idMaquina' , Int , idMaquina)
-        consultaPlanilla.input( 'idPieza' , Int , idPieza)
-        consultaPlanilla.input( 'idMolde' , Int , idMolde)
-        consultaPlanilla.input( 'idTipoProceso' , Int , idTipoProceso)
-        consultaPlanilla.input( 'idOperacion' , Int , idOperacion)
+        consultaPlanilla.input( 'idMaquina' , Int , idMaquina === '' ? null : idMaquina )
+        consultaPlanilla.input( 'idPieza' , Int , idPieza === '' ? null : idPieza )
+        consultaPlanilla.input( 'idMolde' , Int , idMolde === '' ? null : idMolde )
+        consultaPlanilla.input( 'idTipoProceso' , Int , idTipoProceso === '' ? null : idTipoProceso )
+        consultaPlanilla.input( 'idOperacion' , Int , idOperacion === '' ? null : idOperacion )
         const consultaOperariosXplanilla = new Request( transaccion )
         const consultaRechazos = new Request( transaccion )
         const consultaZonas = new Request( transaccion )
         const consultaPM = new Request( transaccion )
-        var vecPlanillaProduccion = []
+        var vecPlanillaProduccion = [  ]
         var vecTrabajadores
         var vecRechazos
         var vecZonas
