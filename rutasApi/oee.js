@@ -51,4 +51,28 @@ router.post ( '/granallado' , async ( req , res ) => {
         }
 }  )
 
+router.post ( '/mecanizado' , async ( req , res ) => {
+    const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
+    const { idMaquina , idPieza , idMolde , fechaProduccionDesde , fechaProduccionHasta } = req.body
+    try {
+        const conexion = await abrirConexionPOOL ( 'listaOEEmecanizado' )
+        const mssql = require ( 'mssql' )
+        const myReques = new  mssql.Request ( conexion )
+        myReques.input ( 'idMaquina' , mssql.Int , idMaquina )
+        myReques.input ( 'idPieza' , mssql.Int , idPieza )
+        myReques.input ( 'idMolde' , mssql.Int , idMolde )
+        myReques.input ( 'fechaProduccionDesde' , mssql.Date , fechaProduccionDesde )
+        myReques.input ( 'fechaProduccionHasta' , mssql.Date , fechaProduccionHasta )
+        const result = await myReques.execute ( 'pa_datosOEEmec' )
+        if ( result ) {
+            cerrarConexionPOOL (  )
+            res.json ( result.recordset )
+        }
+    }
+    catch ( e ) {
+        cerrarConexionPOOL (  )
+        res.json ( { mensaje : e.message , status : 403 } )
+    }
+} )
+
 module.exports = router
