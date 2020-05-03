@@ -235,6 +235,7 @@ create table paradas_maquina
 	id int identity(1,1),
 	nombre varchar(50) unique not null,
 	tipo bit not null,  --0 programada 1 no programada
+	setup int ,
 	id_area int,
 	estado bit not null
 	constraint pk_paradas_maquina primary key (id),

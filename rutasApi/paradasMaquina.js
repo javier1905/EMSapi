@@ -1,31 +1,32 @@
 const {Router} = require('express')
 
-const router = Router()
+const router = Router (  )
 
 
-router.get('/',async (req,res)=>{
-    var {abrirConexion,cerrarConexion} = require('../conexiones/sqlServer')
-    await abrirConexion()
-    var {Request} = require('mssql')
-    var consulta = new Request()
-    consulta.query(
-        `select pm.id as idParadaMaquina, pm.nombre as nombreParadaMaquina, pm.tipo as tipoParadaMaquina, pm.id_area as idArea, a.nombre as nombreArea
+router.get ( '/' , async ( req , res ) => {
+    var { abrirConexion , cerrarConexion } = require('../conexiones/sqlServer')
+    await abrirConexion (  )
+    var { Request } = require ('mssql')
+    var consulta = new Request (  )
+    consulta.query (
+        `select pm.id as idParadaMaquina, pm.nombre as nombreParadaMaquina, pm.tipo as tipoParadaMaquina , pm.setup as setupParadaMaquina , pm.id_area as idArea, a.nombre as nombreArea
         from paradas_maquina pm
 		join areas a on pm.id_area=a.id
         where pm.estado = 1`,
-        (e,dato)=>{
-            if(!e){cerrarConexion()
-                res.json(dato.recordset)
+        ( e , dato ) => {
+            if ( !e ){
+                cerrarConexion (  )
+                res.json ( dato.recordset )
             }
-            else{cerrarConexion()
-                res.json({mensaje:e.message})
+            else { cerrarConexion (  )
+                res.json ( { mensaje : e.message } )
             }
         }
     )
 })
 
 router.post ( '/insert', async ( req , res ) => {
-    const { nombreParadaMaquina , tipoParadaMaquina , idArea } = req.body
+    const { nombreParadaMaquina , tipoParadaMaquina , setupParadaMaquina , idArea } = req.body
     const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
     const { Request , VarChar , Int , Bit } = require ( 'mssql' )
     try {
@@ -34,9 +35,10 @@ router.post ( '/insert', async ( req , res ) => {
         myRequest.input ( 'nombreParadaMaquina' , VarChar , nombreParadaMaquina )
         myRequest.input ( 'tipoParadaMaquina' , Bit , tipoParadaMaquina )
         myRequest.input ( 'idArea' , Int , idArea )
-        const query = `insert into paradas_maquina ( nombre , tipo , id_area , estado )
+        myRequest.input ( 'setupParadaMaquina' , Int , setupParadaMaquina )
+        const query = `insert into paradas_maquina ( nombre , tipo , setup , id_area , estado )
         values
-        ( @nombreParadaMaquina , @tipoParadaMaquina , @idArea , 1 )`
+        ( @nombreParadaMaquina , @tipoParadaMaquina , @setupParadaMaquina , @idArea , 1 )`
         const result = await myRequest.query ( query )
         if ( result ) {
             cerrarConexionPOOL (  )
@@ -49,7 +51,7 @@ router.post ( '/insert', async ( req , res ) => {
     }
 } )
 router.put ( '/update', async ( req , res ) => {
-    const { idParadaMaquina , nombreParadaMaquina , tipoParadaMaquina , idArea } = req.body
+    const { idParadaMaquina , nombreParadaMaquina , setupParadaMaquina , tipoParadaMaquina , idArea } = req.body
     const { abrirConexionPOOL , cerrarConexionPOOL } = require ( '../conexiones/sqlServer' )
     const { Request , VarChar , Int , Bit } = require ( 'mssql' )
     try {
@@ -59,10 +61,12 @@ router.put ( '/update', async ( req , res ) => {
         myRequest.input ( 'tipoParadaMaquina' , Bit , tipoParadaMaquina )
         myRequest.input ( 'idArea' , Int , idArea )
         myRequest.input ( 'idParadaMaquina' , Int , idParadaMaquina )
+        myRequest.input ( 'setupParadaMaquina' , Int , setupParadaMaquina )
         const query = `update paradas_maquina
         set
         nombre = @nombreParadaMaquina ,
         tipo = @tipoParadaMaquina ,
+        setup = @setupParadaMaquina ,
         id_area = @idArea
         where id = @idParadaMaquina`
         const result = await myRequest.query ( query )
