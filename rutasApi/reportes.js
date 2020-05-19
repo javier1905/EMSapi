@@ -24,5 +24,25 @@ router.post ( '/rechazosPrimeraVuelta'  , async ( req, res ) =>{
         res.json ( { status : 403 , mensaje : e.message } )
     }
 } )
-
+router.post ('/paradasMaquina', async (req, res) => {
+    const {idArea , fechaFundicionDesde , fechaFundicionHasta} = req.body
+    const { abrirConexionPOOL , cerrarConexionPOOL } = require('../conexiones/sqlServer')
+    try {
+        const mssql = require('mssql')
+        const conexion = await abrirConexionPOOL('reporteParadasMaquina')
+        const myRequest = new mssql.Request(conexion)
+        myRequest.input('idArea' , mssql.Int , idArea)
+        myRequest.input('fechaFundicionDesde' , mssql.Date , fechaFundicionDesde)
+        myRequest.input('fechaFundicionHasta' , mssql.Date , fechaFundicionHasta)
+        const result = await myRequest.execute('pa_reporteParadasMaquina')
+        if(result) {
+            cerrarConexionPOOL()
+            res.json(result.recordset)
+        }
+    }
+    catch(e) {
+        cerrarConexionPOOL()
+        res.json({mensaje : e.message})
+    }
+} )
 module.exports = router
