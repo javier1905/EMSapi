@@ -45,4 +45,67 @@ router.post ('/paradasMaquina', async (req, res) => {
         res.json({mensaje : e.message})
     }
 } )
+
+router.post ('/detalleParaMaquinaXmaquina' , async (req,res) => {
+    const {abrirConexionPOOL , cerrarConexionPOOL } = require('../conexiones/sqlServer')
+    const { fechaDesdeFundicion , fechaHastaFundicion , nombreMaquina } = req.body
+    try {
+        const mssql = require('mssql')
+        const conexion = await abrirConexionPOOL('consultaDetallePardaMaquina')
+        const myRequest = new mssql.Request(conexion)
+        myRequest.input('fechaDesdeFundicion' , mssql.Date , fechaDesdeFundicion )
+        myRequest.input('fechaHastaFundicion' , mssql.Date , fechaHastaFundicion )
+        myRequest.input('nombreMaquina' , mssql.VarChar , nombreMaquina )
+        const result = await myRequest.execute ('pa_detalleParadaMaquina')
+        if (result) {
+            cerrarConexionPOOL ()
+            res.json(result.recordset)
+        }
+    }
+    catch(e) {
+        cerrarConexionPOOL()
+        res.json({status : 403 , mensaje : e.message})
+    }
+})
+router.post ('/paradasMaquinaXpm' , async (req,res) => {
+    const {abrirConexionPOOL , cerrarConexionPOOL } = require('../conexiones/sqlServer')
+    const { fechaDesdeFundicion , fechaHastaFundicion  } = req.body
+    try {
+        const mssql = require('mssql')
+        const conexion = await abrirConexionPOOL('consultaPardaMaquinaXpm')
+        const myRequest = new mssql.Request(conexion)
+        myRequest.input('fechaDesdeFundicion' , mssql.Date , fechaDesdeFundicion )
+        myRequest.input('fechaHastaFundicion' , mssql.Date , fechaHastaFundicion )
+        const result = await myRequest.execute ('pa_reportePM')
+        if (result) {
+            cerrarConexionPOOL ()
+            res.json(result.recordset)
+        }
+    }
+    catch(e) {
+        cerrarConexionPOOL()
+        res.json({status : 403 , mensaje : e.message})
+    }
+})
+router.post ('/detalleParaMaquinaXpm' , async (req,res) => {
+    const {abrirConexionPOOL , cerrarConexionPOOL } = require('../conexiones/sqlServer')
+    const { fechaDesdeFundicion , fechaHastaFundicion , nombreParadaMaquina } = req.body
+    try {
+        const mssql = require('mssql')
+        const conexion = await abrirConexionPOOL('consultaDetallePardaMaquinaXpm2')
+        const myRequest = new mssql.Request(conexion)
+        myRequest.input('fechaDesdeFundicion' , mssql.Date , fechaDesdeFundicion )
+        myRequest.input('fechaHastaFundicion' , mssql.Date , fechaHastaFundicion )
+        myRequest.input('nombreParadaMaquina' , mssql.VarChar , nombreParadaMaquina )
+        const result = await myRequest.execute ('pa_detalleParadaMaquina2')
+        if (result) {
+            cerrarConexionPOOL ()
+            res.json(result.recordset)
+        }
+    }
+    catch(e) {
+        cerrarConexionPOOL()
+        res.json({status : 403 , mensaje : e.message})
+    }
+})
 module.exports = router

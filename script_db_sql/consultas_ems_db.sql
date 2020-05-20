@@ -50,3 +50,58 @@ select pm.id as idParadaMaquina, pm.nombre as nombreParadaMaquina, pm.tipo as ti
         from paradas_maquina pm
 		join areas a on pm.id_area=a.id
         where pm.estado = 1
+
+
+        SELECT * FROM paradas_maquinas_x_planilla
+select * from paradas_maquina
+select * from planillas_produccion
+select * from planillas_produccion
+select * from procesos
+select * from maquinas
+
+select maq.nombre as nombreMaquina ,
+pm.id as idParadaMaquina , 
+pMaq.nombre as nombreParadaMAquina,
+a.nombre as nombreArea ,
+pm.hora_incio as horaInicio , 
+pm.hora_fin as horaFin ,
+IIF (DATEDIFF(MINUTE, pm.hora_incio , pm.hora_fin ) = 0 , 1440 , IIF( DATEDIFF(MINUTE, pm.hora_incio , pm.hora_fin ) < 0 , 
+DATEDIFF(MINUTE, pm.hora_incio , pm.hora_fin ) + 1440  , 
+DATEDIFF(MINUTE, pm.hora_incio , pm.hora_fin )) ) as Duracion
+from planillas_produccion pp
+join procesos pro on pp.id_proceso = pro.id
+join maquinas maq on pro.id_maquina = maq.id
+join paradas_maquinas_x_planilla pm on pm.id_planilla = pp.id
+join paradas_maquina pMaq on pm.id_paradas_maquina = pMaq.id
+join Areas a on pMaq.id_area = a.id
+where pp.estado = 1
+and pMaq.tipo = 1
+and maq.id_tipos_maquina = 2
+
+
+create procedure pa_reporteParadasMaquina
+@idArea int, 
+@fechaFundicionDesde date , 
+@fechaFundicionHasta date 
+as
+select maq.nombre as nombreMaquina ,
+sum (
+IIF (DATEDIFF(MINUTE, pm.hora_incio , pm.hora_fin ) = 0 , 1440 , IIF( DATEDIFF(MINUTE, pm.hora_incio , pm.hora_fin ) < 0 , 
+DATEDIFF(MINUTE, pm.hora_incio , pm.hora_fin ) + 1440  , 
+DATEDIFF(MINUTE, pm.hora_incio , pm.hora_fin )) ) ) as Duracion
+from planillas_produccion pp
+join procesos pro on pp.id_proceso = pro.id
+join maquinas maq on pro.id_maquina = maq.id
+join paradas_maquinas_x_planilla pm on pm.id_planilla = pp.id
+join paradas_maquina pMaq on pm.id_paradas_maquina = pMaq.id
+join Areas a on pMaq.id_area = a.id
+where pp.estado = 1
+and pMaq.tipo = 1
+and maq.id_tipos_maquina = 2
+and ( @idArea is null or pMaq.id_area =  @idArea  )
+and pp.fe_fundicion between @fechaFundicionDesde and @fechaFundicionHasta
+group by maq.nombre
+
+set dateformat dmy
+exec pa_reporteParadasMaquina
+@idArea = null , @fechaFundicionDesde = '01/01/2020' , @fechaFundicionHasta = '31/12/2020'
