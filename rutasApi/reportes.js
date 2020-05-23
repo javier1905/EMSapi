@@ -48,7 +48,7 @@ router.post ('/paradasMaquina', async (req, res) => {
 
 router.post ('/detalleParaMaquinaXmaquina' , async (req,res) => {
     const {abrirConexionPOOL , cerrarConexionPOOL } = require('../conexiones/sqlServer')
-    const { fechaDesdeFundicion , fechaHastaFundicion , nombreMaquina } = req.body
+    const { fechaDesdeFundicion , fechaHastaFundicion , nombreMaquina, idArea } = req.body
     try {
         const mssql = require('mssql')
         const conexion = await abrirConexionPOOL('consultaDetallePardaMaquina')
@@ -56,6 +56,7 @@ router.post ('/detalleParaMaquinaXmaquina' , async (req,res) => {
         myRequest.input('fechaDesdeFundicion' , mssql.Date , fechaDesdeFundicion )
         myRequest.input('fechaHastaFundicion' , mssql.Date , fechaHastaFundicion )
         myRequest.input('nombreMaquina' , mssql.VarChar , nombreMaquina )
+        myRequest.input('idArea' , mssql.Int , idArea )
         const result = await myRequest.execute ('pa_detalleParadaMaquina')
         if (result) {
             cerrarConexionPOOL ()
